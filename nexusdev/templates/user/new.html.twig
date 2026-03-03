@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create New User{% endblock %}
+
+{% block body %}
+<div class="np-section">
+    <div class="np-section-header">
+        <span class="np-section-kicker">User Management</span>
+        <h1 class="np-section-title">Create New User</h1>
+        <p class="np-section-subtitle">Add a new user to the system.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-lg-6">
+            <div class="np-form-card">
+                {{ include('user/_form.html.twig') }}
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ path('app_user_index') }}" class="btn btn-secondary">← Back to list</a>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,30 @@
+# TWILIO SMS SETUP - ADD TO .env.local
+
+Create or update your .env.local file with these Twilio credentials:
+
+# Twilio SMS Configuration
+TWILIO_ACCOUNT_SID=your_account_sid_here
+TWILIO_AUTH_TOKEN=your_auth_token_here
+TWILIO_PHONE_NUMBER=+1your_twilio_phone_number_here
+
+# HOW TO GET TWILIO CREDENTIALS:
+
+1. Sign up at https://www.twilio.com/try-twilio
+2. Get $15 free credit when you sign up
+3. From your Twilio Console:
+   - Account SID: Found in Console Dashboard
+   - Auth Token: Click "Show" in Console Dashboard
+   - Phone Number: Buy a number from Phone Numbers > Buy a Number
+
+# EXAMPLE VALUES:
+TWILIO_ACCOUNT_SID=AC1234567890abcdef1234567890abcdef
+TWILIO_AUTH_TOKEN=your_auth_token_here_1234567890abcdef
+TWILIO_PHONE_NUMBER=+1234567890
+
+# TESTING:
+After adding credentials, test with:
+php bin/console app:test-sms +1234567890
+
+# PLAYER SETUP:
+Update player records with phone numbers and SMS consent:
+UPDATE player SET phone_number = '+1234567890', sms_consent = 1 WHERE id = 1;

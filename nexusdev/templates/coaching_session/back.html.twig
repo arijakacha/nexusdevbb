@@ -1,0 +1,71 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Coaching sessions{% endblock %}
+
+{% block admin_content %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Coaching sessions</h1>
+            <p class="np-section-subtitle">Manage coaching sessions requested by players.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                <h2>Sessions list</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Player</th>
+                            <th>Coach</th>
+                            <th>Scheduled at</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for session in sessions %}
+                        <tr>
+                            <td>{{ session.id }}</td>
+                            <td>{{ session.player.nickname }}</td>
+                            <td>{{ session.coach.user.username }}</td>
+                            <td>{{ session.scheduledAt|date('Y-m-d H:i') }}</td>
+                            <td>{{ session.status }}</td>
+                            <td style="white-space: nowrap;">
+                                <a href="{{ path('app_coaching_session_back', {'id': session.id}) }}" class="btn btn-sm btn-primary">edit</a>
+                                <form method="post" action="{{ path('app_coaching_session_delete', {'id': session.id}) }}" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this session?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ session.id) }}">
+                                    <button class="btn btn-sm btn-danger">delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6">no sessions found</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">
+                        {% if editing %}
+                            Edit session #{{ currentSession.id }}
+                        {% else %}
+                            Create new session
+                        {% endif %}
+                    </h2>
+
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        {{ form_widget(form) }}
+                        <button class="btn btn-success">{% if editing %}Update{% else %}Save{% endif %}</button>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

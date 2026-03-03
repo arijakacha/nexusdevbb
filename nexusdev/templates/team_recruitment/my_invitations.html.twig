@@ -1,0 +1,138 @@
+{% extends 'base_player.html.twig' %}
+
+{% block title %}My Team Invitations{% endblock %}
+
+{% block body %}
+<section class="np-section">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 class="np-section-title">📬 My Team Invitations</h1>
+                <p class="np-text-muted">View and respond to team recruitment offers.</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{{ path('app_player_dashboard', {'id': player.id}) }}" class="btn btn-secondary">
+                    ← Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        {% if invitations|length > 0 %}
+            <div class="row">
+                {% for invitation in invitations %}
+                    <div class="col-md-6 mb-4">
+                        <div class="np-card" style="padding: 1.5rem; border-left: 4px solid #4a9eff;">
+                            <div class="d-flex align-items-center mb-3">
+                                <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #4a9eff, #6b5ce7); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-right: 1rem;">
+                                    🎮
+                                </div>
+                                <div>
+                                    <h4 class="mb-1">{{ invitation.team.name }}</h4>
+                                    {% if invitation.team.game %}
+                                        <span class="badge bg-primary">{{ invitation.team.game.name }}</span>
+                                    {% endif %}
+                                    <small class="text-muted d-block mt-1">
+                                        Sent {{ invitation.createdAt|date('M d, Y H:i') }}
+                                    </small>
+                                </div>
+                            </div>
+
+                            {% if invitation.message %}
+                                <div class="alert alert-info" style="background: rgba(74, 158, 255, 0.1); border: 1px solid var(--np-primary);">
+                                    <strong>Message from team:</strong><br>
+                                    <em>"{{ invitation.message }}"</em>
+                                </div>
+                            {% endif %}
+
+                            <div class="mb-3">
+                                <p class="mb-1"><strong>Team Info:</strong></p>
+                                {% if invitation.team.country %}
+                                    <p class="mb-1">🌍 {{ invitation.team.country }}</p>
+                                {% endif %}
+                                {% if invitation.team.foundationYear %}
+                                    <p class="mb-1">📅 Founded: {{ invitation.team.foundationYear }}</p>
+                                {% endif %}
+                                <p class="mb-0">👥 {{ invitation.team.players|length }} players in team</p>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-success flex-fill" onclick="respondToInvitation({{ invitation.id }}, 'accept')">
+                                    ✅ Accept
+                                </button>
+                                <button class="btn btn-danger flex-fill" onclick="respondToInvitation({{ invitation.id }}, 'decline')">
+                                    ❌ Decline
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="np-card text-center" style="padding: 4rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">📭</div>
+                <h3>No Pending Invitations</h3>
+                <p class="np-text-muted">You don't have any team invitations yet.<br>Keep playing and teams will notice your skills!</p>
+                <a href="{{ path('app_leaderboard_index') }}" class="btn btn-primary mt-3">
+                    🏆 View Leaderboard
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<script>
+function respondToInvitation(invitationId, action) {
+    const confirmMessage = action === 'accept' 
+        ? 'Are you sure you want to join this team?' 
+        : 'Are you sure you want to decline this invitation?';
+
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+    fetch('{{ path('app_team_invitation_respond', {'invitationId': 'INVITATION_ID'}) }}'.replace('INVITATION_ID', invitationId), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'action=' + action
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-' + (action === 'accept' ? 'success' : 'info') + ' position-fixed top-0 end-0 m-3';
+            toast.style.zIndex = '9999';
+            toast.innerHTML = data.message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    location.reload();
+                }
+            }, 2000);
+        } else {
+            alert(data.error || 'An error occurred');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+</script>
+{% endblock %}

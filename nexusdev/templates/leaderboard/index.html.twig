@@ -1,0 +1,149 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Leaderboards{% endblock %}
+
+{% block body %}
+<div class="np-section">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Competitive Rankings</span>
+        <h1 class="np-section-title">Global Leaderboards</h1>
+        <p class="np-section-subtitle">Track the best players and organizations across all regions.</p>
+    </div>
+
+    {# Game Selector #}
+    <div class="np-form-card mb-4">
+        <div class="d-flex gap-3 flex-wrap align-items-center">
+            <div style="flex: 1; min-width: 200px;">
+                <label class="form-label">Select Game</label>
+                <select id="game-selector" class="form-select">
+                    {% for game in games %}
+                        <option value="{{ game.id }}" {{ selectedGame and selectedGame.id == game.id ? 'selected' : '' }}>
+                            {{ game.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    {# Navigation Tabs #}
+    <div class="d-flex gap-2 mb-4 pb-3" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <a href="{{ path('app_leaderboard_global', {'gameId': selectedGame.id ?? games[0].id}) }}" class="btn btn-primary">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 0.5rem;">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+            </svg>
+            Global Rankings
+        </a>
+        <a href="{{ path('app_leaderboard_regional', {'gameId': selectedGame.id ?? games[0].id}) }}" class="btn btn-secondary">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 0.5rem;">
+                <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"/>
+                <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>
+            </svg>
+            Regional Rankings
+        </a>
+        <a href="{{ path('app_leaderboard_organizations', {'gameId': selectedGame.id ?? games[0].id}) }}" class="btn btn-secondary">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 0.5rem;">
+                <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                <path fill-rule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z"/>
+            </svg>
+            Organizations
+        </a>
+    </div>
+
+    {% block leaderboard_content %}{% endblock %}
+</div>
+
+<style>
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaderboard-table th {
+    text-align: left;
+    padding: 1rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--np-text-muted);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.leaderboard-table td {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.leaderboard-table tr:hover {
+    background: rgba(255,255,255,0.02);
+}
+
+.rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.rank-1 { background: linear-gradient(135deg, #ffd700, #ffaa00); color: #000; }
+.rank-2 { background: linear-gradient(135deg, #c0c0c0, #a0a0a0); color: #000; }
+.rank-3 { background: linear-gradient(135deg, #cd7f32, #b87333); color: #fff; }
+.rank-other { background: rgba(255,255,255,0.1); color: var(--np-text-muted); }
+
+.player-cell {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.player-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.1);
+}
+
+.player-info h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.player-info span {
+    font-size: 0.8rem;
+    color: var(--np-text-muted);
+}
+
+.tier-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.elo-display {
+    font-size: 1.2rem;
+    font-weight: 700;
+    font-family: monospace;
+}
+</style>
+
+<script>
+document.getElementById('game-selector')?.addEventListener('change', function() {
+    const gameId = this.value;
+    const currentPath = window.location.pathname;
+    if (currentPath.includes('/leaderboard/')) {
+        const newPath = currentPath.replace(/\/\d+$/, '/' + gameId);
+        window.location.href = newPath + window.location.search;
+    }
+});
+</script>
+{% endblock %}
+

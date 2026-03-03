@@ -1,0 +1,135 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Achievements - {{ player.nickname }}{% endblock %}
+
+{% block body %}
+<div class="np-section">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Achievement Badges</span>
+        <h1 class="np-section-title">{{ player.nickname }}'s Achievements</h1>
+        <p class="np-section-subtitle">Track your progress and unlock rewards.</p>
+    </div>
+
+    {# Stats Overview #}
+    <div class="row" style="margin-bottom: 2rem;">
+        <div class="col-md-4">
+            <div class="np-card" style="text-align: center;">
+                <div class="np-card-label">Total Points</div>
+                <div style="font-size: 2.5rem; font-weight: 700; color: #fbbf24;">{{ totalPoints }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="np-card" style="text-align: center;">
+                <div class="np-card-label">Unlocked</div>
+                <div style="font-size: 2.5rem; font-weight: 700; color: #34d399;">{{ unlockedAchievements|length }}</div>
+                <span style="color: var(--np-text-muted);">of {{ allAchievements|length }}</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="np-card" style="text-align: center;">
+                <div class="np-card-label">Completion</div>
+                <div style="font-size: 2.5rem; font-weight: 700; color: #22d3ee;">
+                    {% if allAchievements|length > 0 %}
+                        {{ ((unlockedAchievements|length / allAchievements|length) * 100)|round }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Unlocked Achievements #}
+    <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">Unlocked Achievements</h2>
+    <div class="row" style="margin-bottom: 3rem;">
+        {% for pa in unlockedAchievements %}
+            {% set achievement = pa.achievement %}
+            <div class="col-md-3" style="margin-bottom: 1.5rem;">
+                <div class="np-card" style="text-align: center; position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: 10px; right: 10px;">
+                        <span class="badge" style="background: #10b981; padding: 0.25rem 0.5rem; border-radius: 20px; font-size: 0.7rem;">UNLOCKED</span>
+                    </div>
+                    
+                    <div style="width: 80px; height: 80px; margin: 0 auto 1rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem;
+                        {% if achievement.rarity == 'legendary' %}
+                            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+                        {% elseif achievement.rarity == 'epic' %}
+                            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+                        {% elseif achievement.rarity == 'rare' %}
+                            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+                        {% else %}
+                            background: linear-gradient(135deg, #9ca3af, #6b7280);
+                        {% endif %}">
+                        🏆
+                    </div>
+                    
+                    <h4 style="margin: 0 0 0.5rem; font-size: 1.1rem;">{{ achievement.name }}</h4>
+                    <p style="margin: 0 0 0.5rem; font-size: 0.85rem; color: var(--np-text-muted);">{{ achievement.description }}</p>
+                    
+                    <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 1rem;">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--np-text-muted);">
+                            {{ achievement.rarity|title }}
+                        </span>
+                        <span style="font-size: 0.75rem; font-weight: 600; color: #fbbf24;">
+                            +{{ achievement.points }} pts
+                        </span>
+                    </div>
+                    
+                    <div style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--np-text-muted);">
+                        Unlocked {{ pa.unlockedAt|date('M d, Y') }}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="np-card" style="text-align: center; padding: 3rem;">
+                    <p style="color: var(--np-text-muted);">No achievements unlocked yet. Keep playing to earn badges!</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {# In Progress / Locked Achievements #}
+    <h2 style="margin-bottom: 1.5rem; font-size: 1.5rem;">In Progress</h2>
+    <div class="row">
+        {% for achievement in allAchievements %}
+            {% set isUnlocked = false %}
+            {% for pa in unlockedAchievements %}
+                {% if pa.achievement.id == achievement.id %}
+                    {% set isUnlocked = true %}
+                {% endif %}
+            {% endfor %}
+            
+            {% if not isUnlocked %}
+                <div class="col-md-3" style="margin-bottom: 1.5rem;">
+                    <div class="np-card" style="text-align: center; opacity: 0.6;">
+                        <div style="width: 80px; height: 80px; margin: 0 auto 1rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; background: rgba(255,255,255,0.1);">
+                            🔒
+                        </div>
+                        
+                        <h4 style="margin: 0 0 0.5rem; font-size: 1.1rem;">{{ achievement.name }}</h4>
+                        <p style="margin: 0 0 0.5rem; font-size: 0.85rem; color: var(--np-text-muted);">{{ achievement.description }}</p>
+                        
+                        <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 1rem;">
+                            <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--np-text-muted);">
+                                {{ achievement.rarity|title }}
+                            </span>
+                            <span style="font-size: 0.75rem; font-weight: 600; color: #fbbf24;">
+                                +{{ achievement.points }} pts
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.badge {
+    display: inline-block;
+    font-weight: 600;
+}
+</style>
+{% endblock %}
+

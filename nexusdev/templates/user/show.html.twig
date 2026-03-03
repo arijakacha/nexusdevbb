@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ user.username }} - User Details{% endblock %}
+
+{% block body %}
+<div class="np-section">
+    <div class="np-section-header">
+        <span class="np-section-kicker">User Management</span>
+        <h1 class="np-section-title">User Details</h1>
+        <p class="np-section-subtitle">View and manage user information.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-lg-6">
+            <div class="np-card mb-3">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    {% if user.profilePicture %}
+                        <img src="{{ asset('uploads/' ~ user.profilePicture) }}" alt="{{ user.username }}" class="np-avatar np-avatar--xl">
+                    {% else %}
+                        <div class="np-avatar np-avatar--xl">{{ user.username|first|upper }}</div>
+                    {% endif %}
+                    <div>
+                        <h3 class="m-0">{{ user.username }}</h3>
+                        <p class="text-muted m-0">{{ user.email }}</p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="text-muted mb-1" style="font-size: 0.75rem; text-transform: uppercase;">User ID</div>
+                        <div class="font-monospace">#{{ user.id }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="text-muted mb-1" style="font-size: 0.75rem; text-transform: uppercase;">Status</div>
+                        <span class="np-status np-status--{{ user.status|lower }}">{{ user.status }}</span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="text-muted mb-1" style="font-size: 0.75rem; text-transform: uppercase;">User Type</div>
+                        <span class="np-badge np-badge--secondary">{{ user.userType }}</span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="text-muted mb-1" style="font-size: 0.75rem; text-transform: uppercase;">Created</div>
+                        <div>{{ user.createdAt ? user.createdAt|date('M d, Y') : 'N/A' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <a href="{{ path('app_user_index') }}" class="btn btn-secondary">← Back to list</a>
+                <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="btn btn-primary">Edit User</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="np-card">
+                <h5 class="mb-3">Danger Zone</h5>
+                <p class="text-muted mb-3" style="font-size: 0.85rem;">Deleting this user is permanent and cannot be undone.</p>
+                {{ include('user/_delete_form.html.twig') }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

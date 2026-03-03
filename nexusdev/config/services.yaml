@@ -1,0 +1,69 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    logos_directory: '%kernel.project_dir%/public/uploads/logos'
+    riot_api_key: '%env(RIOT_API_KEY)%'
+    riot_api_region: '%env(RIOT_API_REGION)%'
+    assemblyai.api_key: 'da45c2a72f5e45b3899c2283718013ce'
+    document_ai_translate_api_key: '%env(GOOGLE_DOCUMENT_AI_API_KEY_TRANSLATE)%'
+    jitsi_api_key: 'b29021'
+    twilio_account_sid: '%env(TWILIO_ACCOUNT_SID)%'
+    twilio_auth_token: '%env(TWILIO_AUTH_TOKEN)%'
+    twilio_phone_number: '%env(TWILIO_PHONE_NUMBER)%'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+    App\Service\RiotApiService:
+        arguments:
+            $riotApiKey: '%riot_api_key%'
+            $riotApiRegion: '%riot_api_region%'
+
+    App\Service\DocumentAIService:
+        arguments:
+            $apiKey: '%document_ai_translate_api_key%'
+
+    App\Service\JitsiService:
+        arguments:
+            $jitsiApiKey: '%jitsi_api_key%'
+
+    App\Service\SmsService:
+        arguments:
+            $twilioAccountSid: '%env(TWILIO_ACCOUNT_SID)%'
+            $twilioAuthToken: '%env(TWILIO_AUTH_TOKEN)%'
+            $twilioPhoneNumber: '%env(TWILIO_PHONE_NUMBER)%'
+
+    App\Service\WhatsAppService:
+        arguments:
+            $httpClient: '@Symfony\Contracts\HttpClient\HttpClientInterface'
+            $accountSid: '%env(TWILIO_ACCOUNT_SID)%'
+            $authToken: '%env(TWILIO_AUTH_TOKEN)%'
+            $twilioPhoneNumber: '%env(TWILIO_PHONE_NUMBER)%'
+
+    App\Service\SimulatedWhatsAppService:
+        arguments:
+            $httpClient: '@Symfony\Contracts\HttpClient\HttpClientInterface'
+            $accountSid: '%env(TWILIO_ACCOUNT_SID)%'
+            $authToken: '%env(TWILIO_AUTH_TOKEN)%'
+            $twilioPhoneNumber: '%env(TWILIO_PHONE_NUMBER)%'
+        public: true
+        autoconfigure: true
+        autowire: true

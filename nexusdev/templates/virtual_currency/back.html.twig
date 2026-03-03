@@ -1,0 +1,69 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Virtual currency management{% endblock %}
+
+{% block admin_content %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Virtual currencies</h1>
+            <p class="np-section-subtitle">Manage rank points (RP) and vault points (VP) balances for users.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                <h2>Virtual currencies list</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>User</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for currency in virtualCurrencies %}
+                        <tr>
+                            <td>{{ currency.id }}</td>
+                            <td>{{ currency.user.username }}</td>
+                            <td>{{ currency.type }}</td>
+                            <td>{{ currency.amount }}</td>
+                            <td style="white-space: nowrap;">
+                                <a href="{{ path('app_virtual_currency_back', {'id': currency.id}) }}" class="btn btn-sm btn-primary">edit</a>
+                                <form method="post" action="{{ path('app_virtual_currency_delete', {'id': currency.id}) }}" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this currency record?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ currency.id) }}">
+                                    <button class="btn btn-sm btn-danger">delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5">no virtual currencies found</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">
+                        {% if editing %}
+                            Edit record #{{ currentVirtualCurrency.id }}
+                        {% else %}
+                            Create new record
+                        {% endif %}
+                    </h2>
+
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        {{ form_widget(form) }}
+                        <button class="btn btn-success">{% if editing %}Update{% else %}Save{% endif %}</button>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

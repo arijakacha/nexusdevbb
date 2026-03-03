@@ -1,0 +1,44 @@
+{% extends 'analytics/index.html.twig' %}
+
+{% block title %}Team Synergy Analytics{% endblock %}
+
+{% block analytics_content %}
+<div class="np-card">
+    <h2 style="margin-top: 0; font-size: 1.5rem; margin-bottom: 1.5rem;">Team Synergy Analytics</h2>
+    
+    {% if synergyStats|length > 0 %}
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Matches Together</th>
+                    <th>Wins</th>
+                    <th>Win Rate</th>
+                    <th>Combined KDA</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in synergyStats %}
+                    <tr>
+                        <td>{{ stat.player.nickname|default('Unknown') }}</td>
+                        <td>{{ stat.matchesTogether|default(0) }}</td>
+                        <td>{{ stat.wins|default(0) }}</td>
+                        <td>
+                            <span style="font-weight: 600; color: {% if stat.winRate|default(0) >= 60 %}#10b981{% elseif stat.winRate|default(0) >= 50 %}#eab308{% else %}#ef4444{% endif %}">
+                                {{ stat.winRate|default(0) }}%
+                            </span>
+                        </td>
+                        <td>{{ stat.combinedKda|default('N/A') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div style="padding: 3rem; text-align: center;">
+            <p style="color: var(--np-text-muted);">No synergy data available for this team.</p>
+            <p style="font-size: 0.85rem; color: var(--np-text-muted);">Team statistics will appear once matches are recorded.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

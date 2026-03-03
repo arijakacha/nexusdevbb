@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Front - Product list{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Shop</span>
+            <h1 class="np-section-title">Virtual products</h1>
+            <p class="np-section-subtitle">Discover items, packs and currencies available on NexusPlay.</p>
+        </div>
+
+        {# Search and Filter Form #}
+        <div class="np-card mb-4">
+            <div class="np-card__body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <input type="text" name="search" class="form-control" placeholder="Search products..." value="{{ app.request.query.get('search') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="type" class="form-select">
+                            <option value="">All Types</option>
+                            {% for type in types %}
+                                <option value="{{ type }}" {% if app.request.query.get('type') == type %}selected{% endif %}>{{ type }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="minPrice" class="form-control" placeholder="Min Price" value="{{ app.request.query.get('minPrice') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="maxPrice" class="form-control" placeholder="Max Price" value="{{ app.request.query.get('maxPrice') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="inStock" class="form-select">
+                            <option value="">All</option>
+                            <option value="1" {% if app.request.query.get('inStock') == '1' %}selected{% endif %}>In Stock</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100">Filter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if pagination|length > 0 %}
+        <div class="np-card-grid" id="product-grid" style="display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center;">
+            {% for product in pagination %}
+                <div class="np-card product-card" style="width: 300px; display: flex; flex-direction: column;">
+                    {% if product.imagePath %}
+                        <div class="np-card-media" style="height: 200px; overflow: hidden; border-radius: 0.5rem; margin-bottom: 1rem;">
+                            <img src="{{ asset('uploads/products/' ~ product.imagePath) }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    {% endif %}
+
+                    <div class="np-card-label">
+                        {% if product.type == 'CURRENCY' %}
+                            ● Virtual currency
+                        {% else %}
+                            Digital product
+                        {% endif %}
+                    </div>
+
+                    <div class="np-card-title">{{ product.name }}</div>
+
+                    <div style="flex-grow: 1;">
+                        <div class="np-card-meta">
+                            <span class="np-text-strong">Price:</span>
+                            {{ product.price|number_format(2, '.', ' ') }} €
+                        </div>
+
+                        <div class="np-card-meta">
+                            {% if product.type == 'CURRENCY' %}
+                                Use this currency to unlock coaching sessions, shop items and more.
+                            {% else %}
+                                Digital pack or item linked to your NexusPlay account.
+                            {% endif %}
+                        </div>
+
+                        <div class="np-card-meta">
+                            <span class="np-text-strong">Quantity left:</span>
+                            {{ product.quantity }}
+                        </div>
+                    </div>
+
+                    <div class="np-form-footer" style="margin-top: auto; padding-top: 1rem;">
+                        <a href="#" class="btn btn-sm btn-primary">Buy</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        {# Pagination #}
+        <div class="d-flex justify-content-center mt-4">
+            {{ knp_pagination_render(pagination, null, {}, {'sortable': false}) }}
+        </div>
+        {% else %}
+            <div class="np-card np-card--ghost">
+                <div class="np-card-label">Shop</div>
+                <div class="np-card-title">No products found</div>
+                <div class="np-card-meta">
+                    No products match your search criteria.
+                </div>
+            </div>
+        {% endif %}
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.product-card');
+            if (cards.length === 0) return;
+            
+            let maxHeight = 0;
+            cards.forEach(card => {
+                card.style.height = 'auto';
+                maxHeight = Math.max(maxHeight, card.offsetHeight);
+            });
+            
+            cards.forEach(card => {
+                card.style.height = maxHeight + 'px';
+            });
+        });
+    </script>
+{% endblock %}
+

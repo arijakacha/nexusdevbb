@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Choose Your Game - NexusPlay{% endblock %}
+
+{% block body %}
+<section class="np-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="np-card" style="text-align: center; padding: 3rem;">
+                    <h1 class="np-section-title">🎮 Choose Your Battlefield</h1>
+                    <p class="np-text-muted" style="margin-bottom: 2rem;">Select the game you want to compete in. This will determine your ranking and matchmaking.</p>
+                    
+                    {% if games is empty %}
+                        <div class="np-empty">
+                            <p>No games available yet. Please contact an administrator.</p>
+                        </div>
+                    {% else %}
+                        <form method="post" class="np-form">
+                            <div class="row">
+                                {% for game in games %}
+                                    <div class="col-md-4 mb-3">
+                                        <label class="np-game-card" style="cursor: pointer; display: block; padding: 1.5rem; border: 2px solid var(--np-border); border-radius: 12px; transition: all 0.3s;">
+                                            <input type="radio" name="game_id" value="{{ game.id }}" required style="display: none;">
+                                            {% if game.logo %}
+                                                <img src="{{ asset(game.logo) }}" alt="{{ game.name }}" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 1rem;">
+                                            {% else %}
+                                                <div style="width: 80px; height: 80px; background: var(--np-surface); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2rem;">🎮</div>
+                                            {% endif %}
+                                            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem;">{{ game.name }}</h3>
+                                            {% if game.description %}
+                                                <p class="np-text-muted" style="font-size: 0.85rem;">{{ game.description[:60] }}...</p>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div style="margin-top: 2rem;">
+                                <button type="submit" class="btn btn-primary btn-lg">Continue to Profile Setup →</button>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.np-game-card:hover {
+    border-color: var(--np-primary) !important;
+    background: var(--np-surface);
+}
+.np-game-card input:checked + div,
+.np-game-card:has(input:checked) {
+    border-color: var(--np-primary) !important;
+    background: var(--np-primary);
+    color: white;
+}
+.np-game-card:has(input:checked) .np-text-muted {
+    color: rgba(255,255,255,0.8);
+}
+</style>
+{% endblock %}
+

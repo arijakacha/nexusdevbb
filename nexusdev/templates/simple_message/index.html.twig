@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Messages{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Communication</span>
+            <h1 class="np-section-title">Messages</h1>
+        </div>
+
+        {% for flash in app.flashes('success') %}
+            <div class="alert alert-success">{{ flash }}</div>
+        {% endfor %}
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Start New Conversation</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{{ path('app_simple_messages') }}">
+                            <div class="mb-3">
+                                <label for="recipient_id" class="form-label">Select User</label>
+                                <select name="recipient_id" id="recipient_id" class="form-control" required>
+                                    <option value="">Choose a user...</option>
+                                    {% for user in allUsers %}
+                                        <option value="{{ user.id }}">{{ user.username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="content" class="form-label">Message</label>
+                                <textarea name="content" id="content" class="form-control" rows="3" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5>Your Conversations</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if conversations is empty %}
+                            <p class="text-muted">No conversations yet.</p>
+                        {% else %}
+                            {% for conv in conversations %}
+                                {% set other = conv.otherParticipant(app.user) %}
+                                {% if other %}
+                                    <div class="mb-2">
+                                        <a href="{{ path('app_simple_message_conversation', {id: conv.id}) }}" class="btn btn-outline-primary w-100">
+                                            {{ other.username }}
+                                            {% if conv.lastMessage() %}
+                                                <br><small>{{ conv.lastMessage().content|slice(0, 30) }}...</small>
+                                            {% endif %}
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Select a conversation</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <p class="text-muted">Choose a conversation from the left or start a new one.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

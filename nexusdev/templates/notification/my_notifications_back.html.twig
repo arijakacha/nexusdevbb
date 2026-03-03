@@ -1,0 +1,65 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}My Notifications{% endblock %}
+
+{% block admin_content %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">My Notifications</h1>
+            <p class="np-section-subtitle">View and manage your notifications.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                {% if notifications|length > 0 %}
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                        <a href="{{ path('app_notifications_mark_all_read_back') }}" class="btn btn-outline-primary">
+                            Mark All as Read
+                        </a>
+                        <a href="{{ path('app_notifications_delete_all_back') }}" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete all notifications?');">
+                            Delete All
+                        </a>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        {% for notification in notifications %}
+                            <div class="np-card" style="{% if not notification.isRead %}border-left: 4px solid #ffc107;{% endif %} padding: 1rem;">
+                                <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                                    <div style="font-size: 1.5rem;">🔔</div>
+                                    <div style="flex: 1;">
+                                        <div style="font-size: 0.95rem; color: #e0e0e0; margin-bottom: 0.5rem;">
+                                            {{ notification.message|raw }}
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.8rem; color: #888;">
+                                            <span>{{ notification.createdAt|date('M d, Y H:i') }}</span>
+                                            {% if not notification.isRead %}
+                                                <span style="color: #ffc107; font-weight: 500;">(Unread)</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        {% if not notification.isRead %}
+                                            <form action="{{ path('app_notification_read_back', {'id': notification.id}) }}" method="POST" style="margin: 0;">
+                                                <button type="submit" class="btn btn-sm btn-primary">Mark Read</button>
+                                            </form>
+                                        {% endif %}
+                                        <form action="{{ path('app_notification_delete_back', {'id': notification.id}) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Delete this notification?');">
+                                            <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="np-card" style="text-align: center; padding: 3rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔔</div>
+                        <h3 style="color: #e0e0e0; margin-bottom: 0.5rem;">No notifications</h3>
+                        <p style="color: #888;">You don't have any notifications yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endblock %}

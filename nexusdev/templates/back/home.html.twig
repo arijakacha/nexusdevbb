@@ -1,0 +1,476 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}NexusPlay • Admin Dashboard{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+    background: #020617;
+}
+
+.admin-sidebar {
+    width: 240px;
+    background: rgba(15, 23, 42, 0.98);
+    padding: 24px 0;
+    position: fixed;
+    inset-block: 0;
+    border-right: 1px solid rgba(148, 163, 184, 0.15);
+    backdrop-filter: blur(22px);
+}
+
+.admin-sidebar-header {
+    padding: 0 24px 18px;
+    margin-bottom: 8px;
+}
+
+.admin-sidebar-header h2 {
+    color: #e5e7eb;
+    font-size: 1.25rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.admin-sidebar-header h2 span {
+    color: #f97316;
+}
+
+.admin-sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px 20px;
+}
+
+.admin-sidebar-user span {
+    color: #9ca3af;
+    font-size: 0.8rem;
+}
+
+.admin-nav {
+    list-style: none;
+    padding: 8px 0 0;
+    margin: 0;
+}
+
+.admin-nav li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 24px;
+    color: #9ca3af;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.admin-nav li a:hover,
+.admin-nav li a.active {
+    color: #f9fafb;
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.25), rgba(129, 140, 248, 0.6));
+}
+
+.admin-main {
+    flex: 1;
+    margin-left: 240px;
+    padding: 24px 32px 32px;
+}
+
+.admin-main-inner {
+    max-width: 1280px;
+    margin: 0 auto 32px;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.7);
+}
+
+.admin-header h1 {
+    color: #f9fafb;
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.admin-user {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: #9ca3af;
+    font-size: 0.8rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.stat-card {
+    background: #020617;
+    border-radius: 14px;
+    padding: 16px 16px 18px;
+    position: relative;
+    border: 1px solid rgba(15, 23, 42, 0.9);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    inset-inline: 16px;
+    top: 10px;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #22c55e, #3b82f6);
+    opacity: 0.9;
+}
+
+.stat-icon {
+    position: absolute;
+    right: 14px;
+    bottom: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    background: rgba(15, 23, 42, 0.8);
+}
+
+.stat-label {
+    color: #9ca3af;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    color: #f9fafb;
+    font-size: 1.9rem;
+    font-weight: 600;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 20px;
+}
+
+.dashboard-card {
+    background: #020617;
+    border-radius: 14px;
+    padding: 18px 18px 20px;
+    border: 1px solid rgba(15, 23, 42, 0.9);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+}
+
+.dashboard-card h3 {
+    color: #e5e7eb;
+    font-size: 0.9rem;
+    margin: 0 0 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-card h3 a {
+    color: #60a5fa;
+    font-size: 0.75rem;
+    text-decoration: none;
+}
+
+.chart-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    position: relative;
+}
+
+.chart-ring {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 14px solid #020617;
+    border-top-color: #22c55e;
+    border-right-color: #3b82f6;
+    position: relative;
+}
+
+.chart-ring::before {
+    content: '';
+    position: absolute;
+    inset: -14px;
+    border-radius: 50%;
+    border: 14px solid transparent;
+    border-bottom-color: #f97316;
+    border-left-color: #6366f1;
+    opacity: 0.9;
+}
+
+.chart-center {
+    position: absolute;
+    text-align: center;
+}
+
+.chart-center .value {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #f9fafb;
+}
+
+.chart-center .label {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 14px;
+    font-size: 0.75rem;
+}
+
+.chart-legend span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #9ca3af;
+}
+
+.chart-legend span::before {
+    content: '';
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+}
+
+.legend-yellow::before { background: #f97316; }
+.legend-green::before { background: #22c55e; }
+.legend-purple::before { background: #6366f1; }
+.legend-red::before { background: #ef4444; }
+
+.quick-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.quick-links li {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+}
+
+.quick-links li:last-child {
+    border-bottom: none;
+}
+
+.quick-links .icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+}
+
+.quick-links .icon.blue { background: rgba(37, 99, 235, 0.15); color: #60a5fa; }
+.quick-links .icon.green { background: rgba(22, 163, 74, 0.15); color: #22c55e; }
+.quick-links .icon.purple { background: rgba(88, 28, 135, 0.18); color: #a855f7; }
+.quick-links .icon.red { background: rgba(185, 28, 28, 0.15); color: #f97373; }
+
+.quick-links .info {
+    flex: 1;
+}
+
+.quick-links .info strong {
+    color: #e5e7eb;
+    font-size: 0.85rem;
+    display: block;
+}
+
+.quick-links .info span {
+    color: #9ca3af;
+    font-size: 0.75rem;
+}
+
+.quick-links .meta {
+    text-align: right;
+}
+
+.quick-links .meta .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 0.65rem;
+}
+
+.badge-success { background: rgba(22, 163, 74, 0.25); color: #22c55e; }
+.badge-warning { background: rgba(245, 158, 11, 0.22); color: #fbbf24; }
+.badge-danger { background: rgba(239, 68, 68, 0.22); color: #fca5a5; }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+    <div class="admin-header">
+        <h1>Dashboard</h1>
+        <div class="admin-user">
+            <span>{{ "now"|date("M d, Y") }}</span>
+            <div class="np-avatar np-avatar--sm">{{ app.user ? app.user.username|first|upper : 'A' }}</div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="np-stat-card np-stat-card--white">
+                <div class="np-stat-card__label">Total Users</div>
+                <div class="np-stat-card__value">{{ stats.total_users }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="np-stat-card np-stat-card--green">
+                <div class="np-stat-card__label">Active Players</div>
+                <div class="np-stat-card__value">{{ stats.active_players }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="np-stat-card np-stat-card--cyan">
+                <div class="np-stat-card__label">Revenue (approx.)</div>
+                <div class="np-stat-card__value">${{ (stats.total_orders * 27)|number_format(0) }}</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="np-stat-card np-stat-card--amber">
+                <div class="np-stat-card__label">Total Orders</div>
+                <div class="np-stat-card__value">{{ stats.total_orders }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+            <!-- Entity Distribution Chart -->
+            <div class="dashboard-card">
+                <h3>Entity Distribution</h3>
+                <div class="chart-container">
+                    <div class="chart-ring"></div>
+                    <div class="chart-center">
+                        <div class="value">{{ stats.total_users + stats.active_players + stats.total_products + stats.total_orders }}</div>
+                        <div class="label">Total Items</div>
+                    </div>
+                </div>
+                <div class="chart-legend">
+                    <span class="legend-yellow">Users</span>
+                    <span class="legend-green">Players</span>
+                    <span class="legend-purple">Shop</span>
+                    <span class="legend-red">Content</span>
+                </div>
+            </div>
+
+            <!-- Quick Access -->
+            <div class="dashboard-card">
+                <h3>Quick Access <a href="{{ path('app_user_back') }}">View All →</a></h3>
+                <ul class="quick-links">
+                    <li>
+                        <div class="icon blue">👥</div>
+                        <div class="info">
+                            <strong>User Management</strong>
+                            <span>Manage accounts and roles</span>
+                        </div>
+                        <div class="meta">
+                            <div class="badge badge-success">Active</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="icon green">🎮</div>
+                        <div class="info">
+                            <strong>Player Roster</strong>
+                            <span>View and edit players</span>
+                        </div>
+                        <div class="meta">
+                            <div class="badge badge-success">Updated</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="icon purple">🛒</div>
+                        <div class="info">
+                            <strong>Shop Products</strong>
+                            <span>Manage product catalog</span>
+                        </div>
+                        <div class="meta">
+                            <div class="badge badge-warning">12 New</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="icon red">📦</div>
+                        <div class="info">
+                            <strong>Recent Orders</strong>
+                            <span>Process pending orders</span>
+                        </div>
+                        <div class="meta">
+                            <div class="badge badge-danger">5 Pending</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+    </div>
+
+    <!-- Entity Groups -->
+    <div class="dashboard-card" style="margin-top: 20px;">
+            <h3>All Management Modules</h3>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 15px;">
+                <a href="{{ path('app_user_back') }}" style="background: #2a2a3e; padding: 15px; border-radius: 8px; text-decoration: none; color: #fff; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">👥</div>
+                    <div style="font-size: 0.85rem;">Users</div>
+                </a>
+                <a href="{{ path('app_player_back') }}" style="background: #2a2a3e; padding: 15px; border-radius: 8px; text-decoration: none; color: #fff; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🎮</div>
+                    <div style="font-size: 0.85rem;">Players</div>
+                </a>
+                <a href="{{ path('app_coach_back') }}" style="background: #2a2a3e; padding: 15px; border-radius: 8px; text-decoration: none; color: #fff; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🎯</div>
+                    <div style="font-size: 0.85rem;">Coaches</div>
+                </a>
+                <a href="{{ path('app_organization_back') }}" style="background: #2a2a3e; padding: 15px; border-radius: 8px; text-decoration: none; color: #fff; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🏢</div>
+                    <div style="font-size: 0.85rem;">Orgs</div>
+                </a>
+                <a href="{{ path('app_game_back') }}" style="background: #2a2a3e; padding: 15px; border-radius: 8px; text-decoration: none; color: #fff; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🕹️</div>
+                    <div style="font-size: 0.85rem;">Games</div>
+                </a>
+                <a href="{{ path('app_team_back') }}" style="background: #2a2a3e; padding: 15px; border-radius: 8px; text-decoration: none; color: #fff; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">👥</div>
+                    <div style="font-size: 0.85rem;">Teams</div>
+                </a>
+                <a href="{{ path('app_product_back') }}" style="background: #2a2a3e; padding: 15px; border-radius: 8px; text-decoration: none; color: #fff; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">🛒</div>
+                    <div style="font-size: 0.85rem;">Products</div>
+                </a>
+                <a href="{{ path('app_order_back') }}" style="background: #2a2a3e; padding: 15px; border-radius: 8px; text-decoration: none; color: #fff; text-align: center;">
+                    <div style="font-size: 1.5rem; margin-bottom: 8px;">📦</div>
+                    <div style="font-size: 0.85rem;">Orders</div>
+                </a>
+            </div>
+    </div>
+{% endblock %}
+

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏢 Organization System Analysis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        .info { color: #17a2b8; font-weight: bold; }
+        .code { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 8px; 
+            font-family: monospace; 
+            border: 1px solid #dee2e6;
+            margin: 10px 0;
+        }
+        .section {
+            background: #e8f4fd;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .feature {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .issue {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        h1 { color: #333; text-align: center; }
+        h2 { color: #007bff; }
+        h3 { color: #495057; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🏢 Organization System Analysis</h1>
+        <p class="info">Complete analysis of the NexusPlay Organization Management System</p>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>📋 Entity Structure</h2>
+            
+            <div class="section">
+                <h3>Organization Entity</h3>
+                <div class="code">
+Fields:
+- id (int, auto-generated)
+- name (string, 150 chars, required)
+- description (text, optional)
+- logo (string, 255 chars, optional)
+- isValidated (boolean, default: false)
+- createdAt (DateTimeImmutable, auto-set)
+- deletedAt (DateTimeImmutable, nullable)
+- owner (User, required, many-to-one)
+- teams (Team collection, one-to-many)
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Relationships</h3>
+                <ul>
+                    <li><strong>Owner:</strong> One User owns multiple Organizations</li>
+                    <li><strong>Teams:</strong> One Organization has multiple Teams</li>
+                    <li><strong>Soft Delete:</strong> Uses deletedAt timestamp</li>
+                    <li><strong>Validation:</strong> Boolean isValidated flag</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🎮 Controllers</h2>
+            
+            <div class="section">
+                <h3>OrganizationController (Back Office)</h3>
+                <div class="code">Route: /BOrganization</div>
+                <ul>
+                    <li><strong>Main Route:</strong> app_organization_back</li>
+                    <li><strong>Views:</strong> dashboard, profile, teams, players, analytics, leaderboards, shop, notifications</li>
+                    <li><strong>Admin Mode:</strong> ROLE_ADMIN can manage all organizations</li>
+                    <li><strong>User Mode:</strong> Regular users manage their own organization</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>FrontOrganizationController (Public)</h3>
+                <div class="code">Route: /FOrganization</div>
+                <ul>
+                    <li><strong>Public Listing:</strong> Browse all organizations</li>
+                    <li><strong>Search & Filter:</strong> By name, verification status</li>
+                    <li><strong>Sorting:</strong> By name, creation date</li>
+                    <li><strong>Pagination:</strong> 12 items per page</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h2>✨ Features & Capabilities</h2>
+            
+            <div class="grid">
+                <div class="feature">
+                    <h3>🏗️ Organization Management</h3>
+                    <ul>
+                        <li>Create/Edit organizations</li>
+                        <li>Logo upload (2MB max, JPG/PNG/GIF/WebP)</li>
+                        <li>Validation status toggle</li>
+                        <li>Soft delete functionality</li>
+                        <li>Owner assignment</li>
+                    </ul>
+                </div>
+
+                <div class="feature">
+                    <h3>👥 Team Management</h3>
+                    <ul>
+                        <li>Create teams within organization</li>
+                        <li>Team logo upload</li>
+                        <li>Team detail pages</li>
+                        <li>Player recruitment</li>
+                        <li>Player release functionality</li>
+                    </ul>
+                </div>
+
+                <div class="feature">
+                    <h3>📊 Analytics & Statistics</h3>
+                    <ul>
+                        <li>Dashboard with overview</li>
+                        <li>Player analytics</li>
+                        <li>Team statistics</li>
+                        <li>Leaderboards by game</li>
+                        <li>Match history tracking</li>
+                    </ul>
+                </div>
+
+                <div class="feature">
+                    <h3>🛒 Shop Integration</h3>
+                    <ul>
+                        <li>Product management</li>
+                        <li>Organization shop</li>
+                        <li>Product purchases</li>
+                        <li>Revenue tracking</li>
+                    </ul>
+                </div>
+
+                <div class="feature">
+                    <h3>📣 Notifications</h3>
+                    <ul>
+                        <li>Team invitations</li>
+                        <li>Recruitment notifications</li>
+                        <li>System alerts</li>
+                        <li>User notifications</li>
+                    </ul>
+                </div>
+
+                <div class="feature">
+                    <h3>🔍 Search & Discovery</h3>
+                    <ul>
+                        <li>Public organization directory</li>
+                        <li>Advanced search filters</li>
+                        <li>Verification status filtering</li>
+                        <li>Sorting options</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h2>⚠️ Issues & Improvements Needed</h2>
+            
+            <div class="issue">
+                <h3>🔧 Database Schema Issues</h3>
+                <div class="code">
+[FAIL] The entity-class App\Entity\Organization mapping is invalid:
+* The field App\Entity\Organization#teams is on the inverse side of a bi-directional relationship, 
+  but the specified mappedBy association on the target-entity App\Entity\Team#organization 
+  does not contain the required 'inversedBy: "teams"' attribute.
+                </div>
+                <p><strong>Solution:</strong> Add inversedBy="teams" to Team entity's organization mapping</p>
+            </div>
+
+            <div class="issue">
+                <h3>🗄️ Database Sync Required</h3>
+                <p>The database schema is not in sync with the current mapping files.</p>
+                <div class="code">
+php bin/console doctrine:schema:update --force
+                </div>
+            </div>
+
+            <div class="issue">
+                <h3>🔐 Security Considerations</h3>
+                <ul>
+                    <li>CSRF protection is implemented</li>
+                    <li>Access control based on user roles</li>
+                    <li>Owner verification for organization access</li>
+                    <li><strong>Missing:</strong> Rate limiting for organization creation</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h2>📁 File Structure</h2>
+            
+            <div class="grid">
+                <div class="section">
+                    <h3>Core Files</h3>
+                    <div class="code">
+Entity:
+├── src/Entity/Organization.php
+
+Controllers:
+├── src/Controller/OrganizationController.php
+└── src/Controller/FrontOrganizationController.php
+
+Forms:
+└── src/Form/OrganizationType.php
+
+Repository:
+└── src/Repository/OrganizationRepository.php
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>Templates</h3>
+                    <div class="code">
+Back Office:
+├── templates/organization/back.html.twig
+├── templates/organization/back_admin.html.twig
+└── templates/organization/team_detail.html.twig
+
+Frontend:
+└── templates/front/organization/index.html.twig
+
+Base Layouts:
+├── templates/base_organization.html.twig
+└── templates/base.html.twig
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h2>🎯 Key Statistics & Data</h2>
+            
+            <div class="section">
+                <h3>Organization Capabilities</h3>
+                <ul>
+                    <li><strong>Name Length:</strong> 2-150 characters, required</li>
+                    <li><strong>Description:</strong> Max 1000 characters, optional</li>
+                    <li><strong>Logo Size:</strong> Max 2MB, JPG/PNG/GIF/WebP</li>
+                    <li><strong>Validation:</strong> Boolean flag for admin verification</li>
+                    <li><strong>Soft Delete:</strong> Uses deletedAt timestamp</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>Team Management</h3>
+                <ul>
+                    <li><strong>Unlimited Teams:</strong> Per organization</li>
+                    <li><strong>Player Recruitment:</strong> Invitation system</li>
+                    <li><strong>Team Statistics:</strong> Matches, wins, K/D ratio</li>
+                    <li><strong>Player Analytics:</strong> Individual performance tracking</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h2>🚀 Recommended Improvements</h2>
+            
+            <div class="grid">
+                <div class="feature">
+                    <h3>🔧 Technical Fixes</h3>
+                    <ul>
+                        <li>Fix entity mapping issues</li>
+                        <li>Update database schema</li>
+                        <li>Add proper validation</li>
+                        <li>Implement error handling</li>
+                    </ul>
+                </div>
+
+                <div class="feature">
+                    <h3>📈 Feature Enhancements</h3>
+                    <ul>
+                        <li>Organization types/categories</li>
+                        <li>Member management system</li>
+                        <li>Organization settings</li>
+                        <li>Bulk operations</li>
+                    </ul>
+                </div>
+
+                <div class="feature">
+                    <h3>🔐 Security Improvements</h3>
+                    <ul>
+                        <li>Rate limiting</li>
+                        <li>Permission levels</li>
+                        <li>Audit logging</li>
+                        <li>Input validation</li>
+                    </ul>
+                </div>
+
+                <div class="feature">
+                    <h3>📊 Analytics Enhancement</h3>
+                    <ul>
+                        <li>Organization metrics</li>
+                        <li>Performance tracking</li>
+                        <li>Revenue analytics</li>
+                        <li>Growth trends</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🎯 Summary</h2>
+            <p>The Organization system is a comprehensive feature that allows users to create and manage esports organizations. It includes team management, player recruitment, analytics, and shop integration. However, there are some technical issues that need to be resolved, particularly with entity mappings and database synchronization.</p>
+            
+            <div class="section">
+                <h3>Next Steps</h3>
+                <ol>
+                    <li>Fix entity mapping issues (add inversedBy attributes)</li>
+                    <li>Update database schema</li>
+                    <li>Test all functionality</li>
+                    <li>Consider feature enhancements</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

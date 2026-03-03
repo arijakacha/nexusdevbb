@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Coach • NexusPlay{% endblock %}</title>
+        <link rel="stylesheet" href="{{ asset('css/nexusplay.css') }}">
+        {% block stylesheets %}{% endblock %}
+
+        <script>
+            window.CKEDITOR_BASEPATH = '{{ asset('ckeditor/') }}';
+        </script>
+        <script src="{{ asset('ckeditor/ckeditor.js') }}"></script>
+    </head>
+    <body>
+        <div class="np-page">
+            <header class="np-header">
+                <div class="np-header-inner">
+                    <div class="np-logo">
+                        <a href="{{ path('app_coach_back') }}">NEXUS<span>PLAY</span></a>
+                    </div>
+                    <nav class="np-nav">
+                        <a href="{{ path('app_coach_back') }}">DASHBOARD</a>
+                        <a href="{{ path('app_coach_calendar') }}">CALENDAR</a>
+                        <a href="{{ path('app_coach_sessions') }}">SESSIONS</a>
+                        <a href="{{ path('app_coach_profile') }}">PROFILE</a>
+                        <a href="{{ path('app_content_back') }}">GUIDES</a>
+                        <a href="{{ path('app_forum_post_back') }}">FORUM</a>
+                    </nav>
+                    <div class="np-header-actions">
+                        {% if app.user %}
+                            <span class="np-header-user" style="color: #e5e7eb; font-size: 0.9rem;">{{ app.user.username }}</span>
+                            <a href="{{ path('app_logout') }}" class="np-link-muted">LOG OUT</a>
+                        {% else %}
+                            <a href="{{ path('app_login') }}" class="np-link-muted">LOG IN</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+
+            <main class="np-main">
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="np-flash np-flash-{{ label }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+
+                {% block body %}{% endblock %}
+            </main>
+
+            <footer class="np-footer">
+                <div class="np-footer-inner">
+                    <span>© {{ "now"|date("Y") }} NexusPlay. All rights reserved.</span>
+                    <span>Coach dashboard • Schedule • Guides • Forum</span>
+                </div>
+            </footer>
+        </div>
+
+        {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {% endblock %}
+    </body>
+</html>
+

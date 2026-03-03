@@ -1,0 +1,201 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block body %}
+<div class="np-section">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Performance Analytics</span>
+        <h1 class="np-section-title">Analytics Dashboard</h1>
+        <p class="np-section-subtitle">Deep insights into player and team performance.</p>
+    </div>
+
+    {# Game Selector #}
+    <div class="np-form-card" style="margin-bottom: 2rem;">
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+            <div style="flex: 1; min-width: 200px;">
+                <label style="display: block; font-size: 0.78rem; text-transform: uppercase; color: var(--np-text-muted); margin-bottom: 0.5rem;">Select Game</label>
+                <select id="game-selector" class="form-select" style="width: 100%; background: #05070b; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.75rem; border-radius: 10px;">
+                    {% for game in games %}
+                        <option value="{{ game.id }}" {{ selectedGame and selectedGame.id == game.id ? 'selected' : '' }}>
+                            {{ game.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    {% block analytics_content %}
+{# Featured Top Players #}
+<div class="row" style="margin-bottom: 2rem;">
+    <div class="col-md-8">
+        <div class="np-card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <h3 style="margin: 0; font-size: 1.2rem;">Top Players - {{ selectedGame.name }}</h3>
+            </div>
+            {% if topPlayers|length > 0 %}
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Win Rate</th>
+                            <th>Matches</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in topPlayers %}
+                            {% set player = stat.player %}
+                            {% if player %}
+                            <tr>
+                                <td>
+                                    <span class="rank-badge {{ loop.index <= 3 ? 'rank-' ~ loop.index : 'rank-other' }}">
+                                        {{ loop.index }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="player-cell">
+                                        <div class="player-avatar" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-weight: 700;">
+                                            {{ player.nickname|first|upper }}
+                                        </div>
+                                        <div class="player-info">
+                                            <h4>{{ player.nickname }}</h4>
+                                            <span style="font-size: 0.8rem; color: var(--np-text-muted);">Score: {{ player.score }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="font-weight: 700; color: {% if stat.winRate >= 60 %}#10b981{% elseif stat.winRate >= 50 %}#eab308{% else %}#ef4444{% endif %}">
+                                        {{ stat.winRate }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    <span style="color: var(--np-text-muted);">{{ stat.matchesPlayed }}</span>
+                                </td>
+                                <td>
+                                    <a href="{{ path('app_analytics_player', {'playerId': player.id}) }}" class="btn btn-sm btn-secondary">View</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div style="padding: 3rem; text-align: center;">
+                    <p style="color: var(--np-text-muted);">No statistics available yet.</p>
+                    <p style="font-size: 0.85rem; color: var(--np-text-muted);">Player stats will appear once matches are recorded.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="np-card">
+            <h3 style="margin-top: 0; font-size: 1.2rem; margin-bottom: 1.5rem;">Quick Stats</h3>
+            <div style="margin-bottom: 1.5rem;">
+                <div class="np-card-label">Total Players Ranked</div>
+                <div style="font-size: 2rem; font-weight: 700; color: #fff;">{{ topPlayers|length }}</div>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <div class="np-card-label">Recent Matches</div>
+                <div style="font-size: 2rem; font-weight: 700; color: #22d3ee;">{{ recentMatches|length }}</div>
+            </div>
+            <div>
+                <a href="{{ path('app_leaderboard_global', {'gameId': selectedGame.id}) }}" class="btn btn-primary" style="width: 100%;">View Full Leaderboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Recent Matches #}
+{% if recentMatches|length > 0 %}
+<div class="np-card" style="padding: 0; overflow: hidden;">
+    <div style="padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="margin: 0; font-size: 1.2rem;">Recent Matches</h3>
+    </div>
+    <table class="leaderboard-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Teams</th>
+                <th>Score</th>
+                <th>Map</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for match in recentMatches %}
+                <tr>
+                    <td>{{ match.matchDate ? match.matchDate|date('M d, Y') : 'N/A' }}</td>
+                    <td>{{ match.teamAName|default('Team A') }} vs {{ match.teamBName|default('Team B') }}</td>
+                    <td>{{ match.teamAScore|default('-') }} - {{ match.teamBScore|default('-') }}</td>
+                    <td>{{ match.map|default('Unknown') }}</td>
+                    <td>
+                        <span class="badge" style="background: {% if match.status == 'completed' %}#10b981{% elseif match.status == 'live' %}#ef4444{% else %}#f59e0b{% endif %}; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; text-transform: uppercase;">
+                            {{ match.status }}
+                        </span>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<style>
+.rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+.rank-1 { background: linear-gradient(135deg, #ffd700, #ffaa00); color: #000; }
+.rank-2 { background: linear-gradient(135deg, #c0c0c0, #a0a0a0); color: #000; }
+.rank-3 { background: linear-gradient(135deg, #cd7f32, #b87333); color: #fff; }
+.rank-other { background: rgba(255,255,255,0.1); color: var(--np-text-muted); }
+.player-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.player-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1rem;
+}
+.player-info h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+.elo-display {
+    font-family: monospace;
+    font-weight: 700;
+    color: #fff;
+}
+.badge {
+    display: inline-block;
+    font-weight: 600;
+}
+</style>
+{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.getElementById('game-selector')?.addEventListener('change', function() {
+    const gameId = this.value;
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('game', gameId);
+    window.location.href = currentUrl.toString();
+});
+</script>
+{% endblock %}
+

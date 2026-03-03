@@ -1,0 +1,243 @@
+{% extends 'base_coach.html.twig' %}
+
+{% block title %}Forum{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Forum</h1>
+            <p class="np-section-subtitle">Create and manage your forum posts.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                <h2>All posts</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Replies</th>
+                            <th>Created at</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for forumPost in pagination %}
+                        <tr>
+                            <td>{{ forumPost.id }}</td>
+                            <td>{{ forumPost.title }}</td>
+                            <td>{{ forumPost.author.username }}</td>
+                            <td>{{ forumPost.reponses|length }}</td>
+                            <td>{{ forumPost.createdAt|date('Y-m-d H:i') }}</td>
+                            <td style="white-space: nowrap;">
+                                <a href="{{ path('app_forum_post_back', {'id': forumPost.id}) }}" class="btn btn-sm btn-primary">edit</a>
+                                <form method="post" action="{{ path('app_forum_post_delete', {'id': forumPost.id}) }}" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this forum post?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ forumPost.id) }}">
+                                    <button class="btn btn-sm btn-danger">delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6">no forum posts found</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">
+                        {% if editing %}
+                            Edit post #{{ currentForumPost.id }}
+                        {% else %}
+                            Create new forum post
+                        {% endif %}
+                    </h2>
+
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        <div class="mb-3">
+                            {{ form_label(form.title, 'Title', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.title, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.title) }}
+                        </div>
+                        
+                        {% if form.author is defined %}
+                        <div class="mb-3">
+                            {{ form_label(form.author, 'Author', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.author, {'attr': {'class': 'form-select', 'id': 'forum-author-select'}}) }}
+                            {{ form_errors(form.author) }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.content, 'Content', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.content, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.content) }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.imageFile, 'Image', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.imageFile, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.imageFile) }}
+                        </div>
+                        
+                        <button class="btn btn-success">{% if editing %}Update{% else %}Save{% endif %}</button>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Forum post suggestions script loaded');
+            
+            // Simple suggestions for title and content - FOCUSED ON CONTENT
+            const commonWords = [
+                // Content-specific words
+                'content', 'information', 'details', 'description', 'explain', 'discuss', 'share', 'provide',
+                'important', 'necessary', 'useful', 'helpful', 'valuable', 'interesting', 'exciting', 'amazing',
+                'the', 'that', 'their', 'them', 'this', 'there', 'these', 'those', 'other', 'another',
+                'about', 'which', 'with', 'from', 'they', 'have', 'been', 'will', 'would', 'could',
+                'should', 'good', 'great', 'time', 'people', 'think', 'know', 'make', 'work', 'want',
+                'need', 'look', 'come', 'take', 'give', 'tell', 'ask', 'help', 'try', 'find', 'feel'
+            ];
+            
+            function addSimpleSuggestions(input) {
+                if (!input) return;
+                
+                console.log('Adding suggestions to:', input);
+                
+                // Create suggestions container
+                const suggestionsDiv = document.createElement('div');
+                suggestionsDiv.style.cssText = 'position: absolute; display: none; background: white; border: 1px solid #ccc; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 1000; max-height: 150px; overflow-y: auto;';
+                
+                // Position the suggestions container
+                input.style.position = 'relative';
+                input.parentNode.style.position = 'relative';
+                input.parentNode.appendChild(suggestionsDiv);
+                
+                input.addEventListener('input', function() {
+                    const text = this.value;
+                    const words = text.split(/\s+/);
+                    const currentWord = words[words.length - 1];
+                    
+                    console.log('Current word:', currentWord);
+                    
+                    if (currentWord.length < 2) {
+                        suggestionsDiv.style.display = 'none';
+                        return;
+                    }
+                    
+                    const matches = commonWords.filter(word => 
+                        word.toLowerCase().startsWith(currentWord.toLowerCase())
+                    );
+                    
+                    console.log('Matches:', matches);
+                    
+                    if (matches.length > 0) {
+                        suggestionsDiv.innerHTML = '';
+                        matches.forEach(word => {
+                            const item = document.createElement('div');
+                            item.style.cssText = 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px;';
+                            item.textContent = word;
+                            item.onmouseover = () => item.style.background = '#f0f0f0';
+                            item.onmouseout = () => item.style.background = 'white';
+                            item.onclick = () => {
+                                words[words.length - 1] = word;
+                                input.value = words.join(' ');
+                                suggestionsDiv.style.display = 'none';
+                                input.focus();
+                            };
+                            suggestionsDiv.appendChild(item);
+                        });
+                        
+                        // Position the suggestions
+                        const rect = input.getBoundingClientRect();
+                        suggestionsDiv.style.top = (rect.height + 2) + 'px';
+                        suggestionsDiv.style.left = '0px';
+                        suggestionsDiv.style.width = rect.width + 'px';
+                        suggestionsDiv.style.display = 'block';
+                        
+                        console.log('Showing suggestions');
+                    } else {
+                        suggestionsDiv.style.display = 'none';
+                    }
+                });
+                
+                // Hide when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!input.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                        suggestionsDiv.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Add suggestions to content field (PRIORITY)
+            const contentInput = document.querySelector('textarea[name="content"]');
+            if (contentInput) {
+                console.log('🎯 FOUND CONTENT TEXTAREA - Adding suggestions...');
+                addSimpleSuggestions(contentInput);
+                console.log('✅ Content suggestions added successfully');
+            } else {
+                console.log('❌ Content textarea NOT found');
+            }
+            
+            // Add suggestions to title field
+            const titleInput = document.querySelector('input[name="title"]');
+            if (titleInput) {
+                console.log('📝 Found title input - adding suggestions');
+                addSimpleSuggestions(titleInput);
+            } else {
+                console.log('❌ Title input NOT found');
+            }
+            
+            // Author field suggestions
+            const authorSelect = document.getElementById('forum-author-select');
+            console.log('Author select found:', authorSelect);
+            
+            if (authorSelect) {
+                console.log('Setting up author search...');
+                
+                // Store original options
+                const originalOptions = [];
+                for (let i = 0; i < authorSelect.options.length; i++) {
+                    originalOptions.push({
+                        value: authorSelect.options[i].value,
+                        text: authorSelect.options[i].text
+                    });
+                }
+                
+                authorSelect.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    console.log('Searching for:', searchTerm);
+                    
+                    // Clear options
+                    while (authorSelect.options.length > 0) {
+                        authorSelect.remove(0);
+                    }
+                    
+                    // Add matching options
+                    originalOptions.forEach(option => {
+                        if (option.text.toLowerCase().includes(searchTerm)) {
+                            const opt = document.createElement('option');
+                            opt.value = option.value;
+                            opt.text = option.text;
+                            authorSelect.add(opt);
+                        }
+                    });
+                    
+                    console.log('Found matches:', authorSelect.options.length);
+                });
+            } else {
+                console.log('Author select field not found');
+            }
+        });
+    </script>
+{% endblock %}
+

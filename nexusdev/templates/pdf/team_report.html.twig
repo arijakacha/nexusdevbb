@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Team Report - {{ team.name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+        .team-info { margin-bottom: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .stat-card { border: 1px solid #ddd; padding: 15px; text-align: center; border-radius: 8px; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #6366f1; }
+        .stat-label { color: #666; margin-top: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #6366f1; color: white; }
+        .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>NEXUSPLAY - Team Performance Report</h1>
+        <p>Generated on {{ generatedAt|date('F d, Y H:i') }}</p>
+    </div>
+
+    <div class="team-info">
+        <h2>{{ team.name }}</h2>
+        <p>{{ team.game.name }} • {{ team.country|default('No Country') }} • Founded {{ team.foundationYear|default('Unknown') }}</p>
+        {% if team.description %}
+        <p>{{ team.description }}</p>
+        {% endif %}
+    </div>
+
+    <h3>Team Statistics</h3>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.totalMatches|default(0) }}</div>
+            <div class="stat-label">Total Matches</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.totalWins|default(0) }}</div>
+            <div class="stat-label">Wins</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.winRate|default(0) }}%</div>
+            <div class="stat-label">Win Rate</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.kdRatio|default(0) }}</div>
+            <div class="stat-label">K/D Ratio</div>
+        </div>
+    </div>
+
+    <h3>Player Roster</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Nickname</th>
+                <th>Role</th>
+                <th>Score</th>
+                <th>Matches</th>
+                <th>Win Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for player in players %}
+            <tr>
+                <td>{{ player.nickname }}</td>
+                <td>{{ player.role|default('N/A') }}</td>
+                <td>{{ player.score }}</td>
+                <td>{{ player.statistics|length > 0 ? player.statistics[0].matchesPlayed : 0 }}</td>
+                <td>{{ player.statistics|length > 0 ? player.statistics[0].winRate : 0 }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>NEXUSPLAY - Esports Management Platform</p>
+        <p>This report was automatically generated on {{ generatedAt|date('F d, Y') }}</p>
+    </div>
+</body>
+</html>
+

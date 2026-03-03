@@ -1,0 +1,77 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Notification management{% endblock %}
+
+{% block admin_content %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Notifications</h1>
+            <p class="np-section-subtitle">Manage platform notifications sent to users.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                <h2>Notifications list</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>User</th>
+                            <th>Message</th>
+                            <th>Read</th>
+                            <th>Created at</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for notification in notifications %}
+                        <tr>
+                            <td>{{ notification.id }}</td>
+                            <td>{{ notification.user.username }}</td>
+                            <td>{{ notification.message|length > 60 ? notification.message|slice(0, 57) ~ '...' : notification.message }}</td>
+                            <td>
+                                {% if notification.isRead %}
+                                    <span class="badge bg-success">read</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">unread</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ notification.createdAt|date('Y-m-d H:i') }}</td>
+                            <td style="white-space: nowrap;">
+                                <a href="{{ path('app_notification_back', {'id': notification.id}) }}" class="btn btn-sm btn-primary">edit</a>
+                                <form method="post" action="{{ path('app_notification_delete', {'id': notification.id}) }}" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this notification?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ notification.id) }}">
+                                    <button class="btn btn-sm btn-danger">delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6">no notifications found</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">
+                        {% if editing %}
+                            Edit notification #{{ currentNotification.id }}
+                        {% else %}
+                            Create new notification
+                        {% endif %}
+                    </h2>
+
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        {{ form_widget(form) }}
+                        <button class="btn btn-success">{% if editing %}Update{% else %}Save{% endif %}</button>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

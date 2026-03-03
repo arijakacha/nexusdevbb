@@ -1,0 +1,151 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Messages{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Communication</span>
+            <h1 class="np-section-title">Messages</h1>
+            {% if unreadCount > 0 %}
+                <span class="np-badge">{{ unreadCount }} unread</span>
+            {% endif %}
+        </div>
+
+        {% for message in app.flashes('danger') %}
+            <div class="alert alert-danger" role="alert">{{ message }}</div>
+        {% endfor %}
+
+        <div class="np-messages-wrapper">
+            <div class="np-messages-sidebar">
+                <h3>Conversations</h3>
+                {% if conversations is empty %}
+                    <p class="text-muted">No conversations yet.</p>
+                {% else %}
+                    <ul class="np-conversation-list">
+                        {% for conv in conversations %}
+                            {% set other = conv.otherParticipant(app.user) %}
+                            {% if other %}
+                                <li class="np-conversation-item">
+                                    <a href="{{ path('app_message_conversation', {id: conv.id}) }}">
+                                        <div class="np-conversation-avatar">
+                                            {% if other.profilePicture %}
+                                                <img src="{{ asset('uploads/profiles/' ~ other.profilePicture) }}" alt="{{ other.username }}">
+                                            {% else %}
+                                                <div class="np-avatar-placeholder">{{ other.username|first|upper }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="np-conversation-info">
+                                            <div class="np-conversation-name">{{ other.username }}</div>
+                                            <div class="np-conversation-last">
+                                                {% set lastMsg = conv.lastMessage() %}
+                                                {% if lastMsg %}
+                                                    {{ lastMsg.content|u.truncate(30, '...') }}
+                                                {% else %}
+                                                    <em>No messages</em>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="np-conversation-meta">
+                                            <div class="np-conversation-time">
+                                                {% if conv.updatedAt %}
+                                                    {{ conv.updatedAt|date('H:i') }}
+                                                {% endif %}
+                                            </div>
+                                            {% if unreadCount > 0 %}
+                                                <span class="np-badge">!</span>
+                                            {% endif %}
+                                        </div>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="np-messages-main">
+                <div class="np-messages-empty">
+                    <p>Select a conversation to start messaging.</p>
+                    <hr>
+                    <h4>Or start a new conversation</h4>
+                    <div class="np-new-conversation">
+                        <input type="text" id="user-search" placeholder="Type username to search..." class="form-control">
+                        <div id="user-search-results" class="np-search-results"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('user-search');
+            const resultsDiv = document.getElementById('user-search-results');
+            let debounceTimer;
+
+            // Search users
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const query = this.value.trim();
+
+                if (query.length < 2) {
+                    resultsDiv.innerHTML = '';
+                    return;
+                }
+
+                debounceTimer = setTimeout(() => {
+                    console.log('Searching for:', query);
+                    fetch('{{ path('app_message_search_users') }}?q=' + encodeURIComponent(query))
+                        .then(response => {
+                            console.log('Response status:', response.status);
+                            return response.json();
+                        })
+                        .then(users => {
+                            console.log('Users found:', users);
+                            resultsDiv.innerHTML = '';
+                            if (users.length === 0) {
+                                resultsDiv.innerHTML = '<div style="padding: 10px; color: #888;">No users found</div>';
+                                return;
+                            }
+
+                            const list = document.createElement('div');
+                            users.forEach(user => {
+                                const item = document.createElement('a');
+                                item.href = '{{ path('app_message_new', {userId: 'USER_ID'}) }}'.replace('USER_ID', user.id);
+                                item.style.display = 'block';
+                                item.style.padding = '10px';
+                                item.style.borderBottom = '1px solid #333';
+                                item.style.color = '#fff';
+                                item.style.textDecoration = 'none';
+                                item.innerHTML = `
+                                    <div style="display: flex; align-items: center;">
+                                        <div style="width: 40px; height: 40px; background: #444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                                            ${user.username[0].toUpperCase()}
+                                        </div>
+                                        <div>${user.username}</div>
+                                    </div>
+                                `;
+                                list.appendChild(item);
+                            });
+                            resultsDiv.appendChild(list);
+                        })
+                        .catch(error => {
+                            console.error('Search error:', error);
+                            resultsDiv.innerHTML = '<div style="padding: 10px; color: #f44;">Error searching users</div>';
+                        });
+                }, 300);
+            });
+
+            // Hide search results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+                    resultsDiv.innerHTML = '';
+                }
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,200 @@
+{% extends is_granted('ROLE_ORGANIZATION') ? 'base_organization.html.twig' : 'base.html.twig' %}
+
+{% block title %}NexusPlay • Forum{% endblock %}
+
+{% block body %}
+<section class="np-section np-animate-in">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Community</span>
+        <h1 class="np-section-title">Forum Discussions</h1>
+        <p class="np-section-subtitle">Discuss strategies, share clips and talk about the meta with your team.</p>
+    </div>
+
+    {# Search and Sort Form #}
+    <div class="np-card mb-4">
+        <div class="np-card__body">
+            <form method="get" class="row g-3">
+                <div class="col-md-5">
+                    <input type="text" name="search" class="form-control" placeholder="Search discussions..." value="{{ app.request.query.get('search') }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="sortBy" class="form-select">
+                        <option value="createdAt" {% if app.request.query.get('sortBy') == 'createdAt' %}selected{% endif %}>Newest</option>
+                        <option value="title" {% if app.request.query.get('sortBy') == 'title' %}selected{% endif %}>Title</option>
+                        <option value="likes" {% if app.request.query.get('sortBy') == 'likes' %}selected{% endif %}>Most Liked</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="sortOrder" class="form-select">
+                        <option value="DESC" {% if app.request.query.get('sortOrder') == 'DESC' %}selected{% endif %}>Descending</option>
+                        <option value="ASC" {% if app.request.query.get('sortOrder') == 'ASC' %}selected{% endif %}>Ascending</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if forumPosts is empty %}
+        <div class="np-empty-state">
+            <div class="np-empty-state__icon">💬</div>
+            <div class="np-empty-state__title">No Forum Posts Yet</div>
+            <p>Start the first discussion from the back office.</p>
+        </div>
+    {% else %}
+        <div class="np-card-grid">
+            {% for post in forumPosts %}
+                <a href="{{ path('front_forum_post_show', {'id': post.id}) }}" class="np-card hover-lift" style="text-decoration: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="np-badge np-badge--secondary">{{ post.reponses|length }} comments</span>
+                        {% if post.createdAt %}
+                            <span class="text-muted" style="font-size: 0.75rem;">{{ post.createdAt|date('M d, Y') }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="np-card-title" style="font-size: 1.1rem;">{{ post.title }}</div>
+                    <div class="np-card-text text-muted small mb-2">{{ post.content|striptags|slice(0, 120) }}...</div>
+                    <div class="translated-content-{{ post.id }} mt-2 p-2" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 6px; display: none; font-size: 0.85rem; line-height: 1.5;"></div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-info translate-btn" data-post-id="{{ post.id }}" onclick="event.stopPropagation();">🌐 Translate</button>
+                        </div>
+                        <div class="text-muted" style="font-size: 0.85rem;">
+                            By {{ post.author ? post.author.username : 'Unknown' }}
+                        </div>
+                        {# Like/Dislike buttons #}
+                        <div class="d-flex gap-2">
+                            {% if is_granted('ROLE_USER') %}
+                                <button class="btn btn-sm btn-outline-success like-btn" data-post-id="{{ post.id }}" data-type="like" onclick="event.preventDefault();">
+                                    👍 <span class="like-count-{{ post.id }}">{{ post.likes|default(0) }}</span>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger like-btn" data-post-id="{{ post.id }}" data-type="dislike" onclick="event.preventDefault();">
+                                    👎 <span class="dislike-count-{{ post.id }}">{{ post.dislikes|default(0) }}</span>
+                                </button>
+                            {% else %}
+                                <a href="{{ path('app_login') }}" class="btn btn-sm btn-outline-success" onclick="event.stopPropagation();">
+                                    👍 {{ post.likes|default(0) }}
+                                </a>
+                                <a href="{{ path('app_login') }}" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();">
+                                    👎 {{ post.dislikes|default(0) }}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+        
+        {# Pagination #}
+        {% if pagination is defined %}
+            <div class="d-flex justify-content-center mt-4">
+                {{ knp_pagination_render(pagination, null, {}, {'sortable': false}) }}
+            </div>
+        {% endif %}
+    {% endif %}
+</section>
+
+{% if is_granted('ROLE_USER') %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Translate buttons
+    const translateButtons = document.querySelectorAll('.translate-btn');
+    translateButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const postId = this.dataset.postId;
+            const translatedContainer = document.querySelector(`.translated-content-${postId}`);
+            if (!translatedContainer) return;
+
+            button.disabled = true;
+            button.textContent = 'Translating...';
+            translatedContainer.style.display = 'none';
+
+            fetch(`/FForumPost/${postId}/translate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: 'targetLang=fr'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    translatedContainer.innerHTML = data.translatedContent;
+                    translatedContainer.style.display = 'block';
+                } else {
+                    translatedContainer.innerHTML = 'Translation failed: ' + (data.error || 'Unknown error');
+                    translatedContainer.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Translation error:', error);
+                translatedContainer.innerHTML = 'Translation failed: ' + error.message;
+                translatedContainer.style.display = 'block';
+            })
+            .finally(() => {
+                button.disabled = false;
+                button.textContent = '🌐 Translate';
+            });
+        });
+    });
+
+    const likeButtons = document.querySelectorAll('.like-btn');
+    
+    likeButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const postId = this.dataset.postId;
+            const type = this.dataset.type;
+            
+            fetch(`/like/toggle/${postId}/${type}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': '{{ csrf_token('like_action') }}'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Like request failed:', response.status);
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.success) {
+                    // Update counts for this post
+                    document.querySelector(`.like-count-${postId}`).textContent = data.likes;
+                    document.querySelector(`.dislike-count-${postId}`).textContent = data.dislikes;
+                    
+                    // Update button styles
+                    const postButtons = document.querySelectorAll(`.like-btn[data-post-id="${postId}"]`);
+                    postButtons.forEach(btn => {
+                        btn.classList.remove('btn-success', 'btn-danger');
+                        btn.classList.add('btn-outline-success', 'btn-outline-danger');
+                    });
+                    
+                    if (data.userLike) {
+                        const activeBtn = document.querySelector(`.like-btn[data-post-id="${postId}"][data-type="${data.userLike}"]`);
+                        if (activeBtn) {
+                            activeBtn.classList.remove(`btn-outline-${data.userLike === 'like' ? 'success' : 'danger'}`);
+                            activeBtn.classList.add(data.userLike === 'like' ? 'btn-success' : 'btn-danger');
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
+

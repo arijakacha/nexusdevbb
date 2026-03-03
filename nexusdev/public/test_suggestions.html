@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Suggestions</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Forum Suggestions Test</h1>
+    
+    <div class="test-section">
+        <h3>📝 Title Field Test</h3>
+        <input type="text" id="test-title" placeholder="Type 'th' to see suggestions...">
+        <div id="title-log" class="log">Title suggestions will appear here...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>📄 Content Field Test</h3>
+        <textarea id="test-content" rows="4" placeholder="Type 'go' to see suggestions..."></textarea>
+        <div id="content-log" class="log">Content suggestions will appear here...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>👥 Author Field Test</h3>
+        <select id="test-author" style="width: 100%; padding: 8px;">
+            <option value="">Select a user...</option>
+            <option value="1">neo</option>
+            <option value="2">player1</option>
+            <option value="3">admin</option>
+            <option value="4">coach1</option>
+            <option value="5">user123</option>
+        </select>
+        <div id="author-log" class="log">Author suggestions will appear here...</div>
+    </div>
+
+    <script>
+        // Common words for suggestions
+        const commonWords = [
+            'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'I',
+            'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
+            'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she',
+            'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their',
+            'what', 'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go',
+            'me', 'when', 'make', 'can', 'like', 'time', 'no', 'just', 'him', 'know',
+            'take', 'people', 'into', 'year', 'your', 'good', 'some', 'could', 'them',
+            'see', 'other', 'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over',
+            'think', 'also', 'back', 'after', 'use', 'two', 'how', 'our', 'work',
+            'first', 'well', 'way', 'even', 'new', 'want', 'because', 'any', 'these',
+            'give', 'day', 'most', 'us', 'is', 'was', 'are', 'been', 'has', 'had',
+            'were', 'said', 'did', 'having', 'may', 'am'
+        ];
+
+        function setupAutocomplete(input, logDiv) {
+            if (!input) return;
+            
+            console.log('Setting up autocomplete for:', input);
+            
+            // Create suggestions container
+            const suggestionsContainer = document.createElement('div');
+            suggestionsContainer.className = 'suggestions-list';
+            suggestionsContainer.style.cssText = 'position: absolute; display: none; background: white; border: 1px solid #ccc; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 9999; width: 100%;';
+            
+            // Wrap input in container for positioning
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'relative';
+            wrapper.style.display = 'inline-block';
+            wrapper.style.width = '100%';
+            
+            input.parentNode.insertBefore(wrapper, input);
+            wrapper.appendChild(input);
+            wrapper.appendChild(suggestionsContainer);
+            
+            let currentSuggestions = [];
+            let selectedIndex = -1;
+
+            input.addEventListener('input', function() {
+                const text = this.value;
+                const words = text.split(/\s+/);
+                const currentWord = words[words.length - 1];
+                
+                logDiv.innerHTML = `Current word: "${currentWord}" (length: ${currentWord.length})`;
+                
+                if (currentWord.length < 2) {
+                    suggestionsContainer.style.display = 'none';
+                    return;
+                }
+
+                // Show matching common words
+                const matches = commonWords.filter(word => 
+                    word.toLowerCase().startsWith(currentWord.toLowerCase())
+                ).slice(0, 5);
+
+                logDiv.innerHTML += `<br>Found matches: [${matches.join(', ')}]`;
+
+                if (matches.length > 0) {
+                    showSuggestions(matches, currentWord);
+                } else {
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+
+            function showSuggestions(suggestions, currentWord) {
+                currentSuggestions = suggestions;
+                selectedIndex = -1;
+                suggestionsContainer.innerHTML = '';
+                
+                suggestions.forEach((word, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    item.style.cursor = 'pointer';
+                    item.style.fontSize = '0.9rem';
+                    item.style.padding = '8px 12px';
+                    item.style.border = 'none';
+                    item.style.borderBottom = '1px solid #eee';
+                    item.textContent = word;
+                    item.addEventListener('click', () => selectSuggestion(word, currentWord));
+                    item.addEventListener('mouseenter', () => {
+                        item.style.backgroundColor = '#f8f9fa';
+                    });
+                    item.addEventListener('mouseleave', () => {
+                        if (selectedIndex !== index) {
+                            item.style.backgroundColor = 'white';
+                        }
+                    });
+                    suggestionsContainer.appendChild(item);
+                });
+                
+                suggestionsContainer.style.display = 'block';
+                logDiv.innerHTML += `<br>✅ Showing ${suggestions.length} suggestions!`;
+            }
+
+            function selectSuggestion(word, currentWord) {
+                const text = input.value;
+                const words = text.split(/\s+/);
+                words[words.length - 1] = word;
+                input.value = words.join(' ');
+                suggestionsContainer.style.display = 'none';
+                input.focus();
+                logDiv.innerHTML += `<br>✅ Selected: "${word}"`;
+            }
+        }
+
+        // Setup author select with search
+        function setupAuthorSelect() {
+            const authorSelect = document.getElementById('test-author');
+            const authorLog = document.getElementById('author-log');
+            
+            if (authorSelect) {
+                const options = authorSelect.options;
+                const originalLength = options.length;
+                
+                authorSelect.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    authorLog.innerHTML = `Searching for: "${searchTerm}"`;
+                    
+                    // Clear existing options except the first one (placeholder)
+                    while (options.length > 1) {
+                        authorSelect.remove(1);
+                    }
+                    
+                    // Add matching options
+                    let matchCount = 0;
+                    for (let i = 1; i < originalLength; i++) {
+                        const option = options[i];
+                        if (option.text.toLowerCase().includes(searchTerm)) {
+                            const newOption = document.createElement('option');
+                            newOption.value = option.value;
+                            newOption.text = option.text;
+                            authorSelect.add(newOption);
+                            matchCount++;
+                        }
+                    }
+                    authorLog.innerHTML += `<br>✅ Found ${matchCount} matching users`;
+                });
+            }
+        }
+
+        // Initialize all suggestions
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Test page loaded - setting up suggestions');
+            
+            setupAutocomplete(document.getElementById('test-title'), document.getElementById('title-log'));
+            setupAutocomplete(document.getElementById('test-content'), document.getElementById('content-log'));
+            setupAuthorSelect();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+{% extends 'base_organization.html.twig' %}
+
+{% block title %}Players directory{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Players</span>
+            <h1 class="np-section-title">Players directory</h1>
+            <p class="np-section-subtitle">Browse all players, their teams and games.</p>
+        </div>
+
+        {% set totalPlayers = players|length %}
+        {% set proPlayers = 0 %}
+        {% set totalScore = 0 %}
+        {% for p in players %}
+            {% if p.isPro %}
+                {% set proPlayers = proPlayers + 1 %}
+            {% endif %}
+            {% set totalScore = totalScore + p.score %}
+        {% endfor %}
+        {% set normalPlayers = totalPlayers - proPlayers %}
+        {% set avgScore = totalPlayers > 0 ? (totalScore / totalPlayers) : 0 %}
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="np-section-title" style="margin-bottom: 0;">Players</h2>
+            <span class="np-text-muted" style="font-size: 0.85rem;">
+                {{ totalPlayers }} players · <span style="color: #facc15;">{{ proPlayers }} PRO</span> · {{ normalPlayers }} non‑PRO · Avg score {{ avgScore|number_format(0) }}
+            </span>
+        </div>
+
+        {% if players is empty %}
+            <div class="np-card">
+                <p class="np-text-muted mb-0">No players found.</p>
+            </div>
+        {% else %}
+            <div class="np-card-grid" style="grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem;">
+                {% for player in players %}
+                    <div class="np-card" style="position: relative; overflow: hidden; border-radius: 1rem; padding: 1.4rem; transition: transform 0.12s ease, box-shadow 0.12s ease; min-height: 170px;">
+                        <div style="position: absolute; inset: 0; opacity: 0.18; pointer-events: none; background: radial-gradient(circle at top left, rgba(56,189,248,0.4), transparent 55%);"></div>
+
+                        <div style="position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 1.25rem;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                {% if player.profilePicture %}
+                                    <img src="{{ asset('uploads/logos/' ~ player.profilePicture) }}" alt="{{ player.nickname }}" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px rgba(15,23,42,0.7);">
+                                {% else %}
+                                    <div style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #1f2937, #111827); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 0 0 0 2px rgba(15,23,42,0.7);">🎮</div>
+                                {% endif %}
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.15rem;">
+                                        <span style="font-weight: 600; font-size: 1rem;">{{ player.nickname }}</span>
+                                        {% if player.isPro %}
+                                            <span class="badge bg-warning text-dark" style="font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase;">PRO</span>
+                                        {% endif %}
+                                    </div>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 0.45rem; font-size: 0.78rem; margin-top: 0.15rem;">
+                                        <span style="padding: 0.1rem 0.5rem; border-radius: 999px; background: rgba(148,163,184,0.12); border: 1px solid rgba(148,163,184,0.35);">
+                                            {{ player.game ? player.game.name : 'No game' }}
+                                        </span>
+                                        <span style="padding: 0.1rem 0.5rem; border-radius: 999px; background: rgba(148,163,184,0.12); border: 1px solid rgba(148,163,184,0.35);">
+                                            {{ player.team ? player.team.name : 'Free agent' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7;">Score</div>
+                                <div style="font-weight: 700; font-size: 1.4rem; line-height: 1;">{{ player.score }}</div>
+                                <div style="font-size: 0.72rem; opacity: 0.7; margin-top: 0.15rem;">Global rating</div>
+                            </div>
+                        </div>
+
+                        <div style="position: relative; display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; font-size: 0.8rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.15rem;">
+                                <div>
+                                    <span style="opacity: 0.7;">Role</span>
+                                    <span style="opacity: 0.9; font-weight: 500;"> · {{ player.role|default('Not set') }}</span>
+                                </div>
+                                <div>
+                                    <span style="opacity: 0.7;">Status</span>
+                                    <span style="opacity: 0.9; font-weight: 500;">
+                                        · {% if player.isPro %}Available for recruitment{% else %}Not PRO yet{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem;">
+                                {% if player.isPro %}
+                                    <span style="padding: 0.15rem 0.6rem; border-radius: 999px; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.5); font-size: 0.75rem; font-weight: 600;">Recruitable PRO</span>
+                                {% else %}
+                                    <span style="padding: 0.15rem 0.6rem; border-radius: 999px; border: 1px dashed rgba(148,163,184,0.6); font-size: 0.75rem; opacity: 0.8;">Non‑PRO player</span>
+                                {% endif %}
+                                <span class="np-text-muted" style="font-size: 0.7rem;">Created for scouting & admin overview</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="np-form-card np-animate-in-delayed" style="margin-top: 2rem;">
+            <h2 class="np-section-title">How organizations use this page</h2>
+            <ul class="np-text-muted" style="padding-left: 1.2rem; font-size: 0.9rem;">
+                <li>Browse all players, their main game and current team.</li>
+                <li>Identify <strong>PRO</strong> players thanks to the PRO badge and green "Recruitable PRO" tag on each card.</li>
+                <li>Go to your <a href="{{ path('app_organization_back') }}">Organization dashboard</a> to recruit PRO players into your teams.</li>
+            </ul>
+            <p class="np-form-footer" style="margin-top: 0.75rem;">
+                Player creation and editing is handled by platform administrators to keep data consistent across the ecosystem.
+            </p>
+        </div>
+    </section>
+{% endblock %}
+

@@ -1,0 +1,415 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Messages{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Communication</span>
+            <h1 class="np-section-title">Messages</h1>
+            {% if unreadCount > 0 %}
+                <span class="np-badge">{{ unreadCount }} unread</span>
+            {% endif %}
+        </div>
+
+        {% for message in app.flashes('danger') %}
+            <div class="alert alert-danger" role="alert">{{ message }}</div>
+        {% endfor %}
+
+        <div class="np-messages-wrapper">
+            <div class="np-messages-sidebar">
+                <h3>Conversations</h3>
+                {% if conversations is empty %}
+                    <p class="text-muted">No conversations yet.</p>
+                {% else %}
+                    <ul class="np-conversation-list">
+                        {% for conv in conversations %}
+                            {% set other = conv.otherParticipant(app.user) %}
+                            {% if other %}
+                                {% set isActive = activeConversation and activeConversation.id == conv.id %}
+                                <li class="np-conversation-item{% if isActive %} is-active{% endif %}">
+                                    <a href="{{ path('app_messages_conversation', {id: conv.id}) }}">
+                                        <div class="np-conversation-avatar">
+                                            {% if other.profilePicture %}
+                                                <img src="{{ asset('uploads/profiles/' ~ other.profilePicture) }}" alt="{{ other.username }}">
+                                            {% else %}
+                                                <div class="np-avatar-placeholder">{{ other.username|first|upper }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="np-conversation-info">
+                                            <div class="np-conversation-name">{{ other.username }}</div>
+                                            <div class="np-conversation-last">
+                                                {% set previews = previewMessagesByConversation[conv.id]|default([]) %}
+                                                {% if previews is empty %}
+                                                    <em>No messages</em>
+                                                {% else %}
+                                                    {% for pm in previews %}
+                                                        <div class="np-conversation-preview-line">
+                                                            <span class="np-conversation-preview-sender">
+                                                                {% if pm.sender == app.user %}You{% else %}{{ other.username }}{% endif %}:
+                                                            </span>
+                                                            <span class="np-conversation-preview-text">{{ pm.content|u.truncate(22, '...') }}</span>
+                                                            <span class="np-conversation-preview-time">{{ pm.createdAt|date('H:i') }}</span>
+                                                        </div>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="np-conversation-meta">
+                                            <div class="np-conversation-time">
+                                                {% if conv.updatedAt %}
+                                                    {{ conv.updatedAt|date('H:i') }}
+                                                {% endif %}
+                                            </div>
+                                            {% set convUnread = unreadByConversation[conv.id]|default(0) %}
+                                            {% if convUnread > 0 %}
+                                                <span class="np-badge">{{ convUnread }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="np-messages-main">
+                {% if activeConversation %}
+                    <div class="np-conversation-header">
+                        {% set other = activeConversation.otherParticipant(app.user) %}
+                        <div class="np-conversation-user">
+                            {% if other and other.profilePicture %}
+                                <img src="{{ asset('uploads/profiles/' ~ other.profilePicture) }}" alt="{{ other.username }}" class="np-avatar">
+                            {% elseif other %}
+                                <div class="np-avatar-placeholder">{{ other.username|first|upper }}</div>
+                            {% endif %}
+                            <h2>{% if other %}{{ other.username }}{% else %}Conversation{% endif %}</h2>
+                        </div>
+                    </div>
+
+                    <div class="np-messages-container">
+                        <div class="np-messages-list" id="messages-list">
+                            {% for message in messages %}
+                                <div class="np-message {% if message.sender == app.user %}np-message-sent{% else %}np-message-received{% endif %}">
+                                    <div class="np-message-content">
+                                        <p>{{ message.content }}</p>
+                                        <span class="np-message-time">{{ message.createdAt|date('H:i') }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="np-message-form">
+                            <form method="post" action="{{ path('app_message_send_form', {id: activeConversation.id}) }}" id="message-form">
+                                <input type="hidden" name="_token" value="{{ csrf_token('message_send_' ~ activeConversation.id) }}">
+                                <textarea name="content" id="message-input" class="form-control" rows="3" required></textarea>
+                                <button type="submit" class="btn btn-primary" id="send-btn">Send</button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="np-messages-empty">
+                        <p>Select a conversation to start messaging.</p>
+                        <hr>
+                        <h4>Or start a new conversation</h4>
+                        <div class="np-new-conversation">
+                            <input type="text" id="user-search" placeholder="Type username to search..." class="form-control">
+                            <div id="user-search-results" class="np-search-results"></div>
+                            <div class="np-user-picker" id="user-picker">
+                                {% for u in allUsers %}
+                                    <a class="np-user-picker-item" href="{{ path('app_message_new', {userId: u.id}) }}" data-username="{{ u.username|lower }}">
+                                        <div class="np-user-picker-avatar">
+                                            {% if u.profilePicture %}
+                                                <img src="{{ asset('uploads/profiles/' ~ u.profilePicture) }}" alt="{{ u.username }}">
+                                            {% else %}
+                                                <div class="np-avatar-placeholder">{{ u.username|first|upper }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="np-user-picker-name">{{ u.username }}</div>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .np-messages-wrapper {
+            display: grid;
+            grid-template-columns: 320px minmax(0, 1fr);
+            gap: 1rem;
+            align-items: stretch;
+        }
+        .np-conversation-list {
+            list-style: none;
+            padding: 0;
+            margin: 0.75rem 0 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .np-conversation-item a {
+            display: grid;
+            grid-template-columns: 42px minmax(0, 1fr) auto;
+            gap: 0.6rem;
+            align-items: center;
+            padding: 0.55rem 0.6rem;
+            border-radius: 10px;
+        }
+        .np-conversation-item.is-active a {
+            background: rgba(255, 59, 68, 0.12);
+            border: 1px solid rgba(255, 59, 68, 0.22);
+        }
+        .np-conversation-avatar img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .np-avatar-placeholder {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        .np-conversation-name {
+            font-weight: 700;
+        }
+        .np-conversation-last {
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 0.85rem;
+            display: grid;
+            gap: 0.15rem;
+        }
+        .np-conversation-preview-line {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 0.35rem;
+            align-items: baseline;
+        }
+        .np-conversation-preview-sender {
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 600;
+        }
+        .np-conversation-preview-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .np-conversation-preview-time {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.75rem;
+        }
+        .np-conversation-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.35rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+        }
+        .np-messages-sidebar {
+            background: rgba(18, 24, 38, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 1rem;
+            max-height: 70vh;
+            overflow: auto;
+        }
+        .np-messages-main {
+            background: rgba(18, 24, 38, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 1rem;
+            min-height: 70vh;
+        }
+        .np-messages-container {
+            display: grid;
+            grid-template-rows: 1fr auto;
+            gap: 0.75rem;
+            min-height: 60vh;
+        }
+        .np-messages-list {
+            overflow: auto;
+            padding-right: 0.25rem;
+        }
+        .np-message-form textarea {
+            width: 100%;
+            resize: vertical;
+        }
+        .np-user-picker {
+            margin-top: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 0.75rem;
+            max-height: 46vh;
+            overflow: auto;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.5rem;
+        }
+        .np-user-picker-item {
+            display: grid;
+            grid-template-columns: 36px minmax(0, 1fr);
+            gap: 0.5rem;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(18, 24, 38, 0.25);
+        }
+        .np-user-picker-item:hover {
+            border-color: rgba(255, 255, 255, 0.14);
+            background: rgba(18, 24, 38, 0.4);
+        }
+        .np-user-picker-avatar img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .np-user-picker-name {
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        @media (max-width: 500px) {
+            .np-user-picker {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 900px) {
+            .np-messages-wrapper {
+                grid-template-columns: 1fr;
+            }
+            .np-messages-sidebar,
+            .np-messages-main {
+                max-height: none;
+                min-height: auto;
+            }
+        }
+
+        .np-search-results {
+            position: absolute;
+            background: #2a2a3e;
+            border: 1px solid #444;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            width: 100%;
+            margin-top: 4px;
+        }
+        .np-search-results a {
+            display: block;
+            padding: 8px 12px;
+            color: #fff;
+            text-decoration: none;
+            border-bottom: 1px solid #444;
+        }
+        .np-search-results a:hover {
+            background: #3a3a4e;
+        }
+        .np-new-conversation {
+            position: relative;
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const messagesList = document.getElementById('messages-list');
+            if (messagesList) {
+                messagesList.scrollTop = messagesList.scrollHeight;
+            }
+
+            const searchInput = document.getElementById('user-search');
+            const resultsDiv = document.getElementById('user-search-results');
+            const userPicker = document.getElementById('user-picker');
+            let debounceTimer;
+
+            if (!searchInput || !resultsDiv) {
+                return;
+            }
+
+            // Search users
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const query = this.value.trim();
+
+                if (userPicker) {
+                    const q = query.toLowerCase();
+                    userPicker.querySelectorAll('.np-user-picker-item').forEach(el => {
+                        const username = el.getAttribute('data-username') || '';
+                        el.style.display = q === '' || username.includes(q) ? '' : 'none';
+                    });
+                }
+
+                if (query.length < 2) {
+                    resultsDiv.innerHTML = '';
+                    return;
+                }
+
+                debounceTimer = setTimeout(() => {
+                    console.log('Searching for:', query);
+                    fetch('{{ path('app_message_search_users') }}?q=' + encodeURIComponent(query))
+                        .then(response => {
+                            console.log('Response status:', response.status);
+                            return response.json();
+                        })
+                        .then(users => {
+                            console.log('Users found:', users);
+                            resultsDiv.innerHTML = '';
+                            if (users.length === 0) {
+                                resultsDiv.innerHTML = '<div style="padding: 10px; color: #888;">No users found</div>';
+                                return;
+                            }
+
+                            users.forEach(user => {
+                                const item = document.createElement('a');
+                                item.href = '{{ path('app_message_new', {userId: 'USER_ID'}) }}'.replace('USER_ID', user.id);
+                                item.style.display = 'block';
+                                item.style.padding = '10px';
+                                item.style.borderBottom = '1px solid #333';
+                                item.style.color = '#fff';
+                                item.style.textDecoration = 'none';
+                                item.innerHTML = `
+                                    <div style="display: flex; align-items: center;">
+                                        <div style="width: 40px; height: 40px; background: #444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                                            ${user.username[0].toUpperCase()}
+                                        </div>
+                                        <div>${user.username}</div>
+                                    </div>
+                                `;
+                                resultsDiv.appendChild(item);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Search error:', error);
+                            resultsDiv.innerHTML = '<div style="padding: 10px; color: #f44;">Error searching users</div>';
+                        });
+                }, 300);
+            });
+
+            // Hide search results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+                    resultsDiv.innerHTML = '';
+                }
+            });
+        });
+    </script>
+{% endblock %}

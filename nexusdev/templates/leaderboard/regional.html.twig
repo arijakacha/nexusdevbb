@@ -1,0 +1,120 @@
+{% extends 'leaderboard/index.html.twig' %}
+
+{% block title %}Regional Rankings - {{ game.name }}{% endblock %}
+
+{% block leaderboard_content %}
+<div class="np-card" style="padding: 0; overflow: hidden;">
+    <div style="padding: 1.5rem; background: linear-gradient(135deg, rgba(99,102,241,0.1), transparent); border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700;">Regional Rankings - {{ game.name }}</h2>
+                <p style="margin: 0.5rem 0 0; color: var(--np-text-muted);">Region: <strong>{{ region }}</strong> | Season: {{ season }}</p>
+            </div>
+            
+            {# Region Selector #}
+            <div style="display: flex; gap: 0.5rem;">
+                {% for r in regions %}
+                    <a href="{{ path('app_leaderboard_regional', {'gameId': game.id, 'region': r}) }}" 
+                       class="btn btn-sm {{ r == region ? 'btn-primary' : 'btn-secondary' }}"
+                       style="min-width: 50px;">
+                        {{ r }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <table class="leaderboard-table">
+        <thead>
+            <tr>
+                <th style="width: 80px;">Rank</th>
+                <th>Player</th>
+                <th style="width: 150px;">Tier</th>
+                <th style="width: 120px;">Score</th>
+                <th style="width: 100px;">Win Rate</th>
+                <th style="width: 100px;">Matches</th>
+                <th style="width: 100px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in rankings %}
+                <tr>
+                    <td>
+                        <span class="rank-badge {{ entry.rank <= 3 ? 'rank-' ~ entry.rank : 'rank-other' }}">
+                            {{ entry.rank }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="player-cell">
+                            {% if entry.player.profilePicture %}
+                                <img src="{{ asset('uploads/' ~ entry.player.profilePicture) }}" alt="{{ entry.player.nickname }}" class="player-avatar">
+                            {% else %}
+                                <div class="player-avatar" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem;">
+                                    {{ entry.player.nickname|first|upper }}
+                                </div>
+                            {% endif %}
+                            <div class="player-info">
+                                <h4>{{ entry.player.nickname }}</h4>
+                                <span>{{ entry.player.nationality|default('Unknown') }} • {{ entry.player.game.name }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="tier-badge" style="background: {{ entry.tierColor }}20; color: {{ entry.tierColor }};">
+                            {{ entry.tier }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="elo-display">{{ entry.eloRating }}</span>
+                    </td>
+                    <td>
+                        <span style="font-weight: 600; color: {% if entry.winRate >= 60 %}#10b981{% elseif entry.winRate >= 50 %}#eab308{% else %}#ef4444{% endif %}">
+                            {{ entry.winRate }}%
+                        </span>
+                    </td>
+                    <td>
+                        <span style="color: var(--np-text-muted);">{{ entry.matches }}</span>
+                    </td>
+                    <td>
+                        <a href="{{ path('app_analytics_player', {'playerId': entry.player.id}) }}" class="btn btn-sm btn-secondary">
+                            View
+                        </a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 3rem;">
+                        <p style="color: var(--np-text-muted);">No statistics available for this region.</p>
+                        <p style="font-size: 0.85rem; color: var(--np-text-muted);">Player stats will appear once matches are recorded.</p>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{# Regional Stats #}
+<div class="row" style="margin-top: 2rem;">
+    <div class="col-md-4">
+        <div class="np-card" style="text-align: center;">
+            <div class="np-card-label">Region</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #22d3ee;">{{ region }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="np-card" style="text-align: center;">
+            <div class="np-card-label">Regional Players</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #a78bfa;">{{ rankings|length }}</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="np-card" style="text-align: center;">
+            <div class="np-card-label">Top Player Score</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #34d399;">
+                {{ rankings|first ? rankings|first.eloRating : 'N/A' }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

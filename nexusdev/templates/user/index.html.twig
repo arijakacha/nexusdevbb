@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Management{% endblock %}
+
+{% block body %}
+<div class="np-section">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Administration</span>
+        <h1 class="np-section-title">User Management</h1>
+        <p class="np-section-subtitle">Manage system users and their roles.</p>
+    </div>
+
+    <div class="mb-3">
+        <a href="{{ path('app_user_new') }}" class="btn btn-primary">+ Create New User</a>
+    </div>
+
+    <div class="np-card np-card--stats">
+        <div class="table-responsive">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Type</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td><span class="font-monospace text-muted">#{{ user.id }}</span></td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if user.profilePicture %}
+                                    <img src="{{ asset('uploads/' ~ user.profilePicture) }}" alt="" class="np-avatar np-avatar--xs">
+                                {% else %}
+                                    <div class="np-avatar np-avatar--xs">{{ user.username|first|upper }}</div>
+                                {% endif %}
+                                <span class="font-weight-semibold">{{ user.username }}</span>
+                            </div>
+                        </td>
+                        <td class="text-muted">{{ user.email }}</td>
+                        <td>
+                            <span class="np-status np-status--{{ user.status|lower }}">{{ user.status }}</span>
+                        </td>
+                        <td>
+                            <span class="np-badge np-badge--secondary">{{ user.userType }}</span>
+                        </td>
+                        <td class="text-muted">{{ user.createdAt ? user.createdAt|date('M d, Y') : 'N/A' }}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a href="{{ path('app_user_show', {'id': user.id}) }}" class="btn btn-sm btn-secondary">View</a>
+                                <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="np-empty-state py-4">
+                                <div class="np-empty-state__icon">👤</div>
+                                <div class="np-empty-state__title">No Users Found</div>
+                                <p>No users have been created yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

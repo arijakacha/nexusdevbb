@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Request coaching session{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Coaching</span>
+            <h1 class="np-section-title">Request a coaching session for {{ player.nickname }}</h1>
+            <p class="np-section-subtitle">
+                Choose a coach and a date/time to help you reach PRO level.
+            </p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                <div class="np-card">
+                    <div class="np-card-title">Player status</div>
+                    <div class="np-card-meta">
+                        <span class="np-text-strong">Score:</span> {{ player.score }}
+                    </div>
+                    <div class="np-card-meta">
+                        <span class="np-text-strong">Classification:</span>
+                        {% if player.isPro %}
+                            <span class="badge bg-success">PRO</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Not pro</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">Booking details</h2>
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        {{ form_widget(form) }}
+                        <button class="btn btn-primary w-100" type="submit">Send request</button>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sign up{% endblock %}
+
+{% block body %}
+    <section class="np-section np-auth-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Create account</span>
+            <h1 class="np-section-title">Sign up to NexusPlay</h1>
+            <p class="np-section-subtitle">
+                Create a player account to access the community, shop and coaching features.
+            </p>
+        </div>
+
+        {{ form_start(registrationForm, {'attr': {'class': 'np-form'}}) }}
+            {{ form_row(registrationForm.username) }}
+            {{ form_row(registrationForm.email) }}
+            {{ form_row(registrationForm.password) }}
+            {{ form_row(registrationForm.accountType) }}
+
+            <button class="btn btn-primary w-100" type="submit">
+                Sign up
+            </button>
+        {{ form_end(registrationForm) }}
+
+        <p class="np-form-footer">
+            Already have an account?
+            <a href="{{ path('app_login') }}">Log in</a>
+        </p>
+    </section>
+{% endblock %}
+

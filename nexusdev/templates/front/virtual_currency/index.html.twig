@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Virtual Currencies{% endblock %}
+
+{% block body %}
+<div class="np-section">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Wallet</span>
+        <h1 class="np-section-title">Virtual Currencies</h1>
+        <p class="np-section-subtitle">Manage your virtual currency balances.</p>
+    </div>
+
+    <div class="np-card np-card--stats">
+        <div class="table-responsive">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>User</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for virtualCurrency in virtualCurrencies %}
+                    <tr>
+                        <td><span class="np-badge np-badge--secondary">{{ virtualCurrency.type }}</span></td>
+                        <td class="font-weight-semibold">{{ virtualCurrency.amount }}</td>
+                        <td class="text-muted">{{ virtualCurrency.user ? virtualCurrency.user.username : 'N/A' }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="3">
+                            <div class="np-empty-state py-4">
+                                <div class="np-empty-state__icon">💰</div>
+                                <div class="np-empty-state__title">No Virtual Currencies</div>
+                                <p>No virtual currencies have been created yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

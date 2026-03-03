@@ -1,0 +1,97 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Teams Directory{% endblock %}
+
+{% block body %}
+<section class="np-section np-animate-in">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Teams</span>
+        <h1 class="np-section-title">Teams Directory</h1>
+        <p class="np-section-subtitle">Discover all teams, their games and rosters.</p>
+    </div>
+
+    {# Search and Filter Form #}
+    <div class="np-card mb-4">
+        <div class="np-card__body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control" placeholder="Search team name..." value="{{ app.request.query.get('search') }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="game" class="form-select">
+                        <option value="">All Games</option>
+                        {% for game in games %}
+                            <option value="{{ game.id }}" {% if app.request.query.get('game') == game.id %}selected{% endif %}>{{ game.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="country" class="form-select">
+                        <option value="">All Countries</option>
+                        {% for country in countries %}
+                            <option value="{{ country }}" {% if app.request.query.get('country') == country %}selected{% endif %}>{{ country }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="minYear" class="form-control" placeholder="Founded after..." value="{{ app.request.query.get('minYear') }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="sortBy" class="form-select">
+                        <option value="name" {% if app.request.query.get('sortBy') == 'name' %}selected{% endif %}>Name</option>
+                        <option value="foundationYear" {% if app.request.query.get('sortBy') == 'foundationYear' %}selected{% endif %}>Founded</option>
+                        <option value="createdAt" {% if app.request.query.get('sortBy') == 'createdAt' %}selected{% endif %}>Date Added</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if pagination|length == 0 %}
+        <div class="np-empty-state">
+            <div class="np-empty-state__icon">👥</div>
+            <div class="np-empty-state__title">No Teams Found</div>
+            <p>No teams match your search criteria.</p>
+        </div>
+    {% else %}
+        <div class="row">
+            {% for team in pagination %}
+                <div class="col-md-4 mb-3">
+                    <div class="np-card hover-lift h-100">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            {% if team.logo %}
+                                <img src="{{ asset('uploads/logos/' ~ team.logo) }}" alt="{{ team.name }}" class="np-avatar np-avatar--md">
+                            {% else %}
+                                <div class="np-avatar np-avatar--md">👥</div>
+                            {% endif %}
+                            <div>
+                                <h3 class="m-0" style="font-size: 1.1rem;">{{ team.name }}</h3>
+                                {% if team.game %}
+                                    <span class="np-badge np-badge--secondary">{{ team.game.name }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if team.country %}
+                            <p class="text-muted mb-0" style="font-size: 0.9rem;">{{ team.country }} ({{ team.foundationYear|default('N/A') }})</p>
+                        {% endif %}
+                        <p class="text-muted mb-0" style="font-size: 0.9rem;">{{ team.players|length }} players</p>
+                        <div class="mt-2">
+                            <a href="{{ path('front_team_pdf', {'id': team.id}) }}" class="btn btn-sm btn-secondary" title="PDF">📄</a>
+                            <a href="{{ path('front_team_qrcode', {'id': team.id}) }}" class="btn btn-sm btn-secondary" title="QR">📱</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        {# Pagination #}
+        <div class="d-flex justify-content-center mt-4">
+            {{ knp_pagination_render(pagination, null, {}, {'sortable': false}) }}
+        </div>
+    {% endif %}
+</section>
+{% endblock %}
+

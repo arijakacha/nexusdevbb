@@ -1,0 +1,11 @@
+# AI Services Configuration
+services:
+    # AI Service with proper API key injection
+    App\Service\AIService:
+        arguments:
+            $googleAiApiKey: '%env(GOOGLE_AI_API_KEY)%'
+
+    # AI Team Creator Service with proper API key injection
+    App\Service\AITeamCreatorService:
+        arguments:
+            $googleAiApiKey: '%env(GOOGLE_AI_API_KEY)%'

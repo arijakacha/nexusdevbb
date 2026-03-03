@@ -1,0 +1,142 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Profile • NexusPlay{% endblock %}
+
+{% block body %}
+<section class="np-section np-animate-in">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Account</span>
+        <h1 class="np-section-title">My profile</h1>
+        <p class="np-section-subtitle">Update your account, avatar and player identity.</p>
+    </div>
+
+    <div class="np-back-layout">
+        <div class="np-back-layout-main">
+            <div class="np-form-card">
+                <h2 class="np-section-title">Account</h2>
+                <div class="d-flex align-items-center mb-3" style="gap: 16px;">
+                    {% if user.profilePicture %}
+                        <img src="{{ asset('uploads/logos/' ~ user.profilePicture) }}" alt="{{ user.username }}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;">
+                    {% else %}
+                        <div style="width:72px;height:72px;border-radius:50%;background:#111827;display:flex;align-items:center;justify-content:center;font-size:1.8rem;">
+                            {{ user.username|first|upper }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <div style="font-weight:600;">{{ user.username }}</div>
+                        <div class="text-muted" style="font-size:0.85rem;">{{ user.email }}</div>
+                    </div>
+                </div>
+
+                {{ form_start(form) }}
+                    <div class="mb-3">
+                        {{ form_label(form.username) }}
+                        {{ form_widget(form.username, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.username) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_label(form.profilePicture) }}
+                        {{ form_widget(form.profilePicture, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.profilePicture) }}
+                        <small class="text-muted">Upload a JPG/PNG/GIF/WebP (max 2MB).</small>
+                    </div>
+                    <button class="btn btn-primary">Save account</button>
+                {{ form_end(form) }}
+            </div>
+        </div>
+
+        <div class="np-back-layout-side">
+            <div class="np-form-card">
+                <h3 class="np-section-title">Player profile</h3>
+
+                {% if player %}
+                    <p class="mb-1"><strong>Nickname:</strong> {{ player.nickname }}</p>
+                    <p class="mb-1"><strong>Game:</strong> {% if player.game %}{{ player.game.name }}{% else %}<span class="text-muted">Not set</span>{% endif %}</p>
+                    <p class="mb-1"><strong>Score:</strong> {{ player.score|default('0') }}</p>
+                    <p class="mb-1"><strong>Rank:</strong> {{ player.getRank()|default('Unranked') }}</p>
+                    <p class="mb-3"><strong>Status:</strong> {% if player.isPro %}<span class="badge bg-warning">PRO</span>{% else %}<span class="badge bg-secondary">Normal</span>{% endif %}</p>
+
+                    <div class="d-flex flex-column gap-2">
+                        <a href="{{ path('app_player_dashboard', {'id': player.id}) }}" class="btn btn-outline-light btn-sm">Open player dashboard / stats</a>
+                        <a href="{{ path('app_player_edit', {'id': player.id}) }}" class="btn btn-outline-light btn-sm">Edit player profile (nickname, role, nationality)</a>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-2">You don’t have a player profile yet.</p>
+                    <a href="{{ path('app_player_become') }}" class="btn btn-sm btn-success">Become player</a>
+                {% endif %}
+            </div>
+
+            {# Team Invitations Section #}
+            {% if pendingInvitations|length > 0 %}
+                <div class="np-form-card mt-3" style="border: 2px solid #ffc107;">
+                    <h3 style="color: #ffc107;">📬 Team Invitations ({{ pendingInvitations|length }})</h3>
+                    <p style="color: #888; font-size: 0.9rem;">Teams want to recruit you!</p>
+
+                    {% for invitation in pendingInvitations %}
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; padding: 0.75rem; background: #2a2a3e; border-radius: 8px;">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #ffc107, #ff9800); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">🏆</div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: bold; font-size: 0.95rem;">{{ invitation.team.name }}</div>
+                                <div style="font-size: 0.8rem; color: #888;">{% if invitation.team.game %}{{ invitation.team.game.name }}{% else %}Unknown Game{% endif %}</div>
+                            </div>
+                            <div style="display: flex; gap: 0.25rem;">
+                                <button onclick="respondToInvitation({{ invitation.id }}, 'accept')" class="btn btn-success btn-sm" style="padding: 0.25rem 0.5rem;">✓</button>
+                                <button onclick="respondToInvitation({{ invitation.id }}, 'decline')" class="btn btn-danger btn-sm" style="padding: 0.25rem 0.5rem;">✕</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    <a href="{{ path('app_player_invitations') }}" class="btn btn-outline-warning btn-sm w-100 mt-2">
+                        View All Invitations →
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+function respondToInvitation(invitationId, action) {
+    const confirmMessage = action === 'accept'
+        ? 'Are you sure you want to join this team?'
+        : 'Are you sure you want to decline this invitation?';
+
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
+    fetch('{{ path('app_team_invitation_respond', {'invitationId': 'INVITATION_ID'}) }}'.replace('INVITATION_ID', invitationId), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'action=' + action
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-' + (action === 'accept' ? 'success' : 'info') + ' position-fixed top-0 end-0 m-3';
+            toast.style.zIndex = '9999';
+            toast.innerHTML = data.message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+                location.reload();
+            }, 1500);
+        } else {
+            alert(data.error || 'An error occurred');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,244 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Messages{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Communication</span>
+            <h1 class="np-section-title">Messages</h1>
+            {% if unreadCount > 0 %}
+                <span class="np-badge">{{ unreadCount }} unread</span>
+            {% endif %}
+        </div>
+
+        <div class="np-messages-wrapper">
+            <div class="np-messages-sidebar">
+                <h3>Conversations</h3>
+                {% if conversations is empty %}
+                    <p class="text-muted">No conversations yet.</p>
+                {% else %}
+                    <ul class="np-conversation-list">
+                        {% for conv in conversations %}
+                            {% set other = conv.otherParticipant(app.user) %}
+                            {% if other %}
+                                <li class="np-conversation-item">
+                                    <a href="{{ path('app_message_conversation', {id: conv.id}) }}">
+                                        <div class="np-conversation-avatar">
+                                            {% if other.profilePicture %}
+                                                <img src="{{ asset('uploads/profiles/' ~ other.profilePicture) }}" alt="{{ other.username }}">
+                                            {% else %}
+                                                <div class="np-avatar-placeholder">{{ other.username|first|upper }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="np-conversation-info">
+                                            <div class="np-conversation-name">{{ other.username }}</div>
+                                            <div class="np-conversation-last">
+                                                {% set lastMsg = conv.lastMessage() %}
+                                                {% if lastMsg %}
+                                                    {{ lastMsg.content|u.truncate(30, '...') }}
+                                                {% else %}
+                                                    <em>No messages</em>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="np-conversation-meta">
+                                            <div class="np-conversation-time">
+                                                {% if conv.updatedAt %}
+                                                    {{ conv.updatedAt|date('H:i') }}
+                                                {% endif %}
+                                            </div>
+                                            {% set unreadCount = app.user ? app.user.unreadMessageCount : 0 %}
+                                            {% if unreadCount > 0 %}
+                                                <span class="np-badge">!</span>
+                                            {% endif %}
+                                        </div>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="np-messages-main">
+                <div class="np-messages-empty" id="empty-state">
+                    <p>Select a conversation to start messaging.</p>
+                </div>
+                <div class="np-new-conversation" id="new-conversation-form" style="display: none;">
+                    <h3>Start a new conversation</h3>
+                    <div class="np-message-search">
+                        <input type="text" id="user-search" placeholder="Search users..." class="form-control">
+                        <div id="user-search-results" class="np-search-results"></div>
+                    </div>
+                </div>
+                <div class="np-conversation-view" id="conversation-view" style="display: none;">
+                    <!-- Conversation content will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="np-messages-actions">
+            <button id="new-conversation-btn" class="btn btn-primary">Start new conversation</button>
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const newConvBtn = document.getElementById('new-conversation-btn');
+            const emptyState = document.getElementById('empty-state');
+            const newConvForm = document.getElementById('new-conversation-form');
+            const convView = document.getElementById('conversation-view');
+            const searchInput = document.getElementById('user-search');
+            const resultsDiv = document.getElementById('user-search-results');
+            let debounceTimer;
+
+            // Show new conversation form
+            newConvBtn.addEventListener('click', function() {
+                emptyState.style.display = 'none';
+                convView.style.display = 'none';
+                newConvForm.style.display = 'block';
+                searchInput.focus();
+            });
+
+            // Handle conversation clicks
+            document.querySelectorAll('.np-conversation-item a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = this.getAttribute('href');
+                    window.location.href = url; // Navigate to conversation page
+                });
+            });
+
+            function loadConversation(url) {
+                fetch(url)
+                    .then(response => response.text())
+                    .then(html => {
+                        convView.innerHTML = html;
+                        emptyState.style.display = 'none';
+                        newConvForm.style.display = 'none';
+                        convView.style.display = 'block';
+                        // Initialize message form if needed
+                        const messageForm = document.getElementById('message-form');
+                        if (messageForm) {
+                            initMessageForm();
+                        }
+                    });
+            }
+
+            function initMessageForm() {
+                const form = document.getElementById('message-form');
+                const input = document.getElementById('message-input');
+                const sendBtn = document.getElementById('send-btn');
+                const messagesList = document.getElementById('messages-list');
+                const conversationId = document.querySelector('input[name="conversation_id"]')?.value;
+
+                if (!form || !conversationId) return;
+
+                // Scroll to bottom
+                if (messagesList) messagesList.scrollTop = messagesList.scrollHeight;
+
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const content = input.value.trim();
+                    if (!content) return;
+
+                    sendBtn.disabled = true;
+                    sendBtn.textContent = 'Sending...';
+
+                    const formData = new FormData();
+                    formData.append('content', content);
+
+                    fetch('/messages/send/' + conversationId, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert(data.error);
+                            return;
+                        }
+
+                        if (messagesList) {
+                            const messageDiv = document.createElement('div');
+                            messageDiv.className = 'np-message np-message-sent';
+                            messageDiv.innerHTML = `
+                                <div class="np-message-content">
+                                    <p>${data.content}</p>
+                                    <span class="np-message-time">${data.sender} • ${data.createdAt}</span>
+                                </div>
+                            `;
+                            messagesList.appendChild(messageDiv);
+                            messagesList.scrollTop = messagesList.scrollHeight;
+                        }
+
+                        input.value = '';
+                    })
+                    .catch(error => {
+                        alert('Error sending message: ' + error.message);
+                    })
+                    .finally(() => {
+                        sendBtn.disabled = false;
+                        sendBtn.textContent = 'Send';
+                    });
+                });
+            }
+
+            // Search users
+            searchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const query = this.value.trim();
+
+                if (query.length < 2) {
+                    resultsDiv.innerHTML = '';
+                    return;
+                }
+
+                debounceTimer = setTimeout(() => {
+                    fetch('{{ path('app_message_search_users') }}?q=' + encodeURIComponent(query))
+                        .then(response => response.json())
+                        .then(users => {
+                            resultsDiv.innerHTML = '';
+                            if (users.length === 0) {
+                                resultsDiv.innerHTML = '<div class="np-search-no-results">No users found</div>';
+                                return;
+                            }
+
+                            const list = document.createElement('div');
+                            list.className = 'np-search-list';
+                            users.forEach(user => {
+                                const item = document.createElement('a');
+                                item.href = '{{ path('app_message_new', {userId: 'USER_ID'}) }}'.replace('USER_ID', user.id);
+                                item.className = 'np-search-item';
+                                item.innerHTML = `
+                                    <div class="np-search-avatar">
+                                        <div class="np-avatar-placeholder">${user.username[0].toUpperCase()}</div>
+                                    </div>
+                                    <div class="np-search-info">
+                                        <div class="np-search-name">${user.username}</div>
+                                    </div>
+                                `;
+                                item.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    window.location.href = this.getAttribute('href');
+                                });
+                                list.appendChild(item);
+                            });
+                            resultsDiv.appendChild(list);
+                        });
+                }, 300);
+            });
+
+            // Hide search results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+                    resultsDiv.innerHTML = '';
+                }
+            });
+        });
+    </script>
+{% endblock %}

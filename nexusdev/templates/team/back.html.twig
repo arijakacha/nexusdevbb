@@ -1,0 +1,123 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Team management{% endblock %}
+
+{% block admin_content %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Team management</h1>
+            <p class="np-section-subtitle">Manage teams associated with organizations and games.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                {# Search Form #}
+                <div class="np-card mb-4">
+                    <div class="np-card__body">
+                        <form method="get" class="row g-3">
+                            <div class="col-md-8">
+                                <input type="text" name="search" class="form-control" placeholder="Search team name..." value="{{ app.request.query.get('search') }}">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100">Search</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="np-card p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="px-4 py-3" style="width: 80px;">
+                                        <a href="{{ path('app_team_back', {'sort': 'id', 'direction': sort == 'id' and direction == 'ASC' ? 'DESC' : 'ASC', 'search': app.request.query.get('search')}) }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                                            <span>#</span>
+                                            {% if sort == 'id' %}<i class="bi bi-caret-{{ direction == 'ASC' ? 'up' : 'down' }}-fill"></i>{% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="px-4 py-3">
+                                        <a href="{{ path('app_team_back', {'sort': 'name', 'direction': sort == 'name' and direction == 'ASC' ? 'DESC' : 'ASC', 'search': app.request.query.get('search')}) }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                                            <span>Name</span>
+                                            {% if sort == 'name' %}<i class="bi bi-caret-{{ direction == 'ASC' ? 'up' : 'down' }}-fill"></i>{% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="px-4 py-3">Game</th>
+                                    <th class="px-4 py-3">Organization</th>
+                                    <th class="px-4 py-3 text-end" style="width: 150px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for team in pagination %}
+                                <tr class="align-middle">
+                                    <td class="px-4 fw-semibold text-muted">{{ team.id }}</td>
+                                    <td class="px-4">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-people-fill text-info"></i>
+                                            <span class="fw-medium">{{ team.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4">
+                                        {% if team.game %}
+                                            <span class="badge bg-secondary">{{ team.game.name }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4">
+                                        {% if team.organization %}
+                                            <span class="badge bg-primary">{{ team.organization.name }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 text-end">
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <a href="{{ path('app_team_back', {'id': team.id}) }}" class="btn btn-sm btn-primary d-flex align-items-center gap-1" title="Edit"><i class="bi bi-pencil-square"></i><span>Edit</span></a>
+                                            <form method="post" action="{{ path('app_team_delete', {'id': team.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this team?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ team.id) }}">
+                                                <button class="btn btn-sm btn-danger d-flex align-items-center gap-1" title="Delete"><i class="bi bi-trash"></i><span>Delete</span></button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <i class="bi bi-people display-4 mb-3 d-block"></i>
+                                        <p class="mb-0">No teams found matching your criteria.</p>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {# Pagination #}
+                    <div class="d-flex justify-content-center mt-3">
+                        {{ knp_pagination_render(pagination, null, {}, {'sortable': false}) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">
+                        {% if editing %}
+                            Edit team #{{ currentTeam.id }}
+                        {% else %}
+                            Create new team
+                        {% endif %}
+                    </h2>
+
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        {{ form_widget(form) }}
+                        <button class="btn btn-success">{% if editing %}Update{% else %}Save{% endif %}</button>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

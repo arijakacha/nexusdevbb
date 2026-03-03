@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}NexusPlay • Back Office{% endblock %}</title>
+        <link rel="stylesheet" href="{{ asset('css/nexusplay.css') }}">
+        {% block stylesheets %}
+            <style>
+                .admin-wrapper {
+                    display: flex;
+                    min-height: 100vh;
+                    background: #020617;
+                }
+
+                .admin-sidebar {
+                    width: 240px;
+                    background: rgba(15, 23, 42, 0.98);
+                    padding: 24px 0;
+                    position: fixed;
+                    inset-block: 0;
+                    border-right: 1px solid rgba(148, 163, 184, 0.15);
+                    backdrop-filter: blur(22px);
+                }
+
+                .admin-sidebar-header {
+                    padding: 0 24px 18px;
+                    margin-bottom: 8px;
+                }
+
+                .admin-sidebar-header h2 {
+                    color: #e5e7eb;
+                    font-size: 1.25rem;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    margin: 0;
+                }
+
+                .admin-sidebar-header h2 span {
+                    color: #f97316;
+                }
+
+                .admin-sidebar-user {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 16px 24px 20px;
+                }
+
+                .admin-sidebar-user span {
+                    color: #9ca3af;
+                    font-size: 0.8rem;
+                }
+
+                .admin-nav {
+                    list-style: none;
+                    padding: 8px 0 0;
+                    margin: 0;
+                }
+
+                .admin-nav li a {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 10px 24px;
+                    color: #9ca3af;
+                    font-size: 0.85rem;
+                    text-decoration: none;
+                    transition: all 0.2s ease;
+                }
+
+                .admin-nav li a:hover,
+                .admin-nav li a.active {
+                    color: #f9fafb;
+                    background: linear-gradient(90deg, rgba(59, 130, 246, 0.25), rgba(129, 140, 248, 0.6));
+                }
+
+                .admin-main {
+                    flex: 1;
+                    margin-left: 240px;
+                    padding: 24px 32px 32px;
+                }
+
+                .admin-main-inner {
+                    max-width: 1280px;
+                    margin: 0 auto 32px;
+                }
+
+                .admin-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 24px;
+                    padding-bottom: 16px;
+                    border-bottom: 1px solid rgba(55, 65, 81, 0.7);
+                }
+
+                .admin-header h1 {
+                    color: #f9fafb;
+                    font-size: 1.4rem;
+                    font-weight: 600;
+                    letter-spacing: 0.02em;
+                }
+
+                .admin-user {
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                    color: #9ca3af;
+                    font-size: 0.8rem;
+                }
+            </style>
+        {% endblock %}
+        {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {% endblock %}
+    </head>
+    <body class="np-page np-page--admin">
+        {% block body %}
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="np-flash np-flash-{{ label }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            {% set current_route = app.request.attributes.get('_route') %}
+
+            <div class="admin-wrapper">
+                <aside class="admin-sidebar">
+                    <div class="admin-sidebar-header">
+                        <h2>NEXUS<span>PLAY</span></h2>
+                    </div>
+                    <div class="admin-sidebar-user" style="position: relative;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #6b5ce7, #4a9eff); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold;">{{ app.user ? app.user.username|first|upper : 'A' }}</div>
+                        <div style="flex: 1;">
+                            <div style="color: #fff; font-size: 0.9rem;">{{ app.user ? app.user.username : 'Admin' }}</div>
+                            <span>Back office</span>
+                        </div>
+                        {# Notification Bell #}
+                        {% if is_granted('ROLE_ORGANIZATION') and app.user %}
+                            {% set unreadCount = app.user.notifications|filter(n => not n.isRead)|length %}
+                            <div style="position: relative; cursor: pointer;" onclick="toggleNotifDropdown()">
+                                <span style="font-size: 1.3rem;">🔔</span>
+                                {% if unreadCount > 0 %}
+                                    <span style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; font-weight: bold;">{{ unreadCount }}</span>
+                                {% endif %}
+                            </div>
+                            {# Dropdown #}
+                            <div id="notifDropdown" style="display: none; position: absolute; top: 100%; right: 0; width: 280px; background: #1e293b; border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 8px; margin-top: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 1000;">
+                                <div style="padding: 12px 16px; border-bottom: 1px solid rgba(148, 163, 184, 0.2); display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: #f9fafb; font-weight: 600;">Notifications</span>
+                                    {% if unreadCount > 0 %}
+                                        <span style="background: #ef4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem;">{{ unreadCount }}</span>
+                                    {% endif %}
+                                </div>
+                                <div style="max-height: 300px; overflow-y: auto;">
+                                    {% set recentNotifications = app.user.notifications|slice(0, 5) %}
+                                    {% if recentNotifications|length > 0 %}
+                                        {% for notification in recentNotifications %}
+                                            <div style="padding: 10px 16px; border-bottom: 1px solid rgba(148, 163, 184, 0.1); {% if not notification.isRead %}background: rgba(59, 130, 246, 0.1);{% endif %}">
+                                                <div style="font-size: 0.8rem; color: #e0e0e0; line-height: 1.4;">{{ notification.message|raw }}</div>
+                                                <div style="font-size: 0.7rem; color: #888; margin-top: 4px;">{{ notification.createdAt|date('M d, H:i') }}</div>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div style="padding: 20px; text-align: center; color: #888; font-size: 0.8rem;">No notifications</div>
+                                    {% endif %}
+                                </div>
+                                <div style="padding: 10px 16px; border-top: 1px solid rgba(148, 163, 184, 0.2); text-align: center;">
+                                    <a href="{{ path('app_notifications_back_office') }}" style="color: #3b82f6; text-decoration: none; font-size: 0.8rem;">View All</a>
+                                </div>
+                            </div>
+                            <script>
+                                function toggleNotifDropdown() {
+                                    var dropdown = document.getElementById('notifDropdown');
+                                    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                                }
+                                document.addEventListener('click', function(event) {
+                                    var dropdown = document.getElementById('notifDropdown');
+                                    var bell = event.target.closest('[onclick="toggleNotifDropdown()"]');
+                                    if (!bell && dropdown.style.display === 'block') {
+                                        dropdown.style.display = 'none';
+                                    }
+                                });
+                            </script>
+                        {% endif %}
+                    </div>
+                    <ul class="admin-nav">
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <li><a href="{{ path('back_home') }}" class="{{ current_route == 'back_home' ? 'active' : '' }}">📊 Dashboard</a></li>
+                            <li><a href="{{ path('app_user_back') }}" class="{{ current_route == 'app_user_back' ? 'active' : '' }}">👥 Users</a></li>
+                            <li><a href="{{ path('app_player_back') }}" class="{{ current_route == 'app_player_back' ? 'active' : '' }}">🎮 Players</a></li>
+                            <li><a href="{{ path('app_coach_back') }}" class="{{ current_route == 'app_coach_back' ? 'active' : '' }}">🎯 Coaches</a></li>
+                            <li><a href="{{ path('app_organization_back') }}" class="{{ current_route == 'app_organization_back' ? 'active' : '' }}">🏢 Organizations</a></li>
+                            <li><a href="{{ path('app_game_back') }}" class="{{ current_route == 'app_game_back' ? 'active' : '' }}">🕹️ Games</a></li>
+                            <li><a href="{{ path('app_team_back') }}" class="{{ current_route == 'app_team_back' ? 'active' : '' }}">👥 Teams</a></li>
+                            <li><a href="{{ path('app_product_back') }}" class="{{ current_route == 'app_product_back' ? 'active' : '' }}">🛒 Shop</a></li>
+                            <li><a href="{{ path('app_order_back') }}" class="{{ current_route == 'app_order_back' ? 'active' : '' }}">📦 Orders</a></li>
+                            <li><a href="{{ path('app_content_back') }}" class="{{ current_route == 'app_content_back' ? 'active' : '' }}">📝 Content</a></li>
+                            <li><a href="{{ path('app_forum_post_back') }}" class="{{ current_route == 'app_forum_post_back' ? 'active' : '' }}">💬 Forum</a></li>
+                            <li><a href="{{ path('app_stream_back') }}" class="{{ current_route == 'app_stream_back' ? 'active' : '' }}">📺 Streams</a></li>
+                        {% elseif is_granted('ROLE_ORGANIZATION') %}
+                            <li><a href="{{ path('app_organization_back') }}" class="{{ current_route == 'app_organization_back' ? 'active' : '' }}">🏢 Organization dashboard</a></li>
+                            <li><a href="{{ path('app_player_back') }}" class="{{ current_route == 'app_player_back' ? 'active' : '' }}">🎮 Players</a></li>
+                            <li><a href="{{ path('app_product_back') }}" class="{{ current_route == 'app_product_back' ? 'active' : '' }}">🛒 Shop products</a></li>
+                            <li><a href="{{ path('app_analytics_index') }}">📈 Analytics</a></li>
+                        {% elseif is_granted('ROLE_COACH') %}
+                            <li><a href="{{ path('app_coach_back') }}" class="{{ current_route == 'app_coach_back' ? 'active' : '' }}">🎯 Coaching dashboard</a></li>
+                            <li><a href="{{ path('app_content_back') }}" class="{{ current_route == 'app_content_back' ? 'active' : '' }}">📝 Guides</a></li>
+                            <li><a href="{{ path('app_forum_post_back') }}" class="{{ current_route == 'app_forum_post_back' ? 'active' : '' }}">💬 Forum</a></li>
+                            <li><a href="{{ path('app_analytics_index') }}">📈 Analytics</a></li>
+                        {% endif %}
+
+                        <li><a href="{{ path('app_logout') }}">🚪 Log out</a></li>
+                    </ul>
+                </aside>
+
+                <main class="admin-main">
+                    <div class="admin-main-inner">
+                        {% block admin_content %}{% endblock %}
+                    </div>
+                </main>
+            </div>
+        {% endblock %}
+    </body>
+</html>
+

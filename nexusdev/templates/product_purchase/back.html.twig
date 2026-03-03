@@ -1,0 +1,73 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Product purchases{% endblock %}
+
+{% block admin_content %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Product purchases</h1>
+            <p class="np-section-subtitle">Review purchases of shop products by users.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                <h2>Purchases list</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>User</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Unit price</th>
+                            <th>Created at</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for purchase in purchases %}
+                        <tr>
+                            <td>{{ purchase.id }}</td>
+                            <td>{{ purchase.user.username }}</td>
+                            <td>{{ purchase.product.name }}</td>
+                            <td>{{ purchase.quantity }}</td>
+                            <td>{{ purchase.unitPrice|number_format(2, '.', ' ') }} €</td>
+                            <td>{{ purchase.createdAt|date('Y-m-d H:i') }}</td>
+                            <td style="white-space: nowrap;">
+                                <a href="{{ path('app_product_purchase_back', {'id': purchase.id}) }}" class="btn btn-sm btn-primary">edit</a>
+                                <form method="post" action="{{ path('app_product_purchase_delete', {'id': purchase.id}) }}" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this purchase record?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ purchase.id) }}">
+                                    <button class="btn btn-sm btn-danger">delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7">no purchases found</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">
+                        {% if editing %}
+                            Edit purchase #{{ currentPurchase.id }}
+                        {% else %}
+                            Create new purchase
+                        {% endif %}
+                    </h2>
+
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        {{ form_widget(form) }}
+                        <button class="btn btn-success">{% if editing %}Update{% else %}Save{% endif %}</button>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

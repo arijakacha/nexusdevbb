@@ -1,0 +1,205 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Coach management{% endblock %}
+
+{% block admin_content %}
+    {% if mode|default('management') == 'dashboard' %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Coaching dashboard</h1>
+            <p class="np-section-subtitle">Your daily schedule and meeting creation.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                <div class="np-form-card np-animate-in-delayed mb-4">
+                    <div class="d-flex justify-content-between align-items-end" style="gap: 16px;">
+                        <div>
+                            <h2 class="np-section-title">Schedule</h2>
+                            <p class="np-section-subtitle mb-0">Sessions for {{ selectedDate|date('Y-m-d') }}</p>
+                        </div>
+
+                        <form method="get" class="d-flex" style="gap: 8px; align-items: end;">
+                            <div>
+                                <label class="form-label" style="font-size: 0.8rem; opacity: 0.8;">Date</label>
+                                <input type="date" name="date" value="{{ selectedDate|date('Y-m-d') }}" class="form-control" />
+                            </div>
+                            <div>
+                                <button class="btn btn-outline-light">Go</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {% if sessions is empty %}
+                    <div class="np-card">
+                        <p class="text-muted mb-0">No sessions scheduled for this day.</p>
+                    </div>
+                {% else %}
+                    <div class="np-card-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem;">
+                        {% for session in sessions %}
+                            <div class="np-card">
+                                <div style="display:flex; justify-content: space-between; gap: 12px;">
+                                    <div>
+                                        <div style="font-weight: 600;">{{ session.player.nickname }}</div>
+                                        <div class="np-text-muted" style="font-size: 0.85rem;">{{ session.scheduledAt|date('H:i') }} · {{ session.status }}</div>
+                                    </div>
+                                    <div class="np-text-muted" style="font-size: 0.8rem;">
+                                        #{{ session.id }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">Create meeting</h2>
+                    {{ form_start(createSessionForm, {'attr': {'class': 'np-form'}}) }}
+                        {{ form_widget(createSessionForm) }}
+                        <button class="btn btn-success">Create</button>
+                    {{ form_end(createSessionForm) }}
+                </div>
+            </div>
+        </div>
+    </section>
+    {% else %}
+        <section class="np-section np-animate-in">
+            <div class="np-section-header">
+                <span class="np-section-kicker">Back office</span>
+                <h1 class="np-section-title">Coach management</h1>
+                <p class="np-section-subtitle">Review coaches, their ratings and pricing.</p>
+            </div>
+
+            <div class="np-back-layout">
+                <div class="np-back-layout-main">
+                {# Search Form #}
+                <div class="np-card mb-4">
+                    <div class="np-card__body">
+                        <form method="get" class="row g-3">
+                            <div class="col-md-8">
+                                <input type="text" name="search" class="form-control" placeholder="Search coach..." value="{{ app.request.query.get('search') }}">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100">Search</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <h2 class="np-section-title mb-3">Coaches list</h2>
+                <div class="np-card p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="px-4 py-3" style="width: 80px;">
+                                        <a href="{{ path('app_coach_back', {'sort': 'id', 'direction': sort == 'id' and direction == 'ASC' ? 'DESC' : 'ASC', 'search': app.request.query.get('search')}) }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                                            <span>#</span>
+                                            {% if sort == 'id' %}
+                                                <i class="bi bi-caret-{{ direction == 'ASC' ? 'up' : 'down' }}-fill"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="px-4 py-3">User</th>
+                                    <th class="px-4 py-3">
+                                        <a href="{{ path('app_coach_back', {'sort': 'experienceLevel', 'direction': sort == 'experienceLevel' and direction == 'ASC' ? 'DESC' : 'ASC', 'search': app.request.query.get('search')}) }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                                            <span>Experience</span>
+                                            {% if sort == 'experienceLevel' %}
+                                                <i class="bi bi-caret-{{ direction == 'ASC' ? 'up' : 'down' }}-fill"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="px-4 py-3">
+                                        <a href="{{ path('app_coach_back', {'sort': 'rating', 'direction': sort == 'rating' and direction == 'ASC' ? 'DESC' : 'ASC', 'search': app.request.query.get('search')}) }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                                            <span>Rating</span>
+                                            {% if sort == 'rating' %}
+                                                <i class="bi bi-caret-{{ direction == 'ASC' ? 'up' : 'down' }}-fill"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="px-4 py-3">
+                                        <a href="{{ path('app_coach_back', {'sort': 'pricePerSession', 'direction': sort == 'pricePerSession' and direction == 'ASC' ? 'DESC' : 'ASC', 'search': app.request.query.get('search')}) }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                                            <span>Price</span>
+                                            {% if sort == 'pricePerSession' %}
+                                                <i class="bi bi-caret-{{ direction == 'ASC' ? 'up' : 'down' }}-fill"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="px-4 py-3 text-end" style="width: 150px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for coach in pagination %}
+                                <tr class="align-middle">
+                                    <td class="px-4 fw-semibold">{{ coach.id }}</td>
+                                    <td class="px-4">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="np-avatar-sm" style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: 600;">
+                                                {{ coach.user ? coach.user.username|slice(0, 2)|upper : '?' }}
+                                            </div>
+                                            <span>{{ coach.user ? coach.user.username : 'N/A' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4">
+                                        <span class="badge bg-info bg-opacity-20 text-info">{{ coach.experienceLevel }}</span>
+                                    </td>
+                                    <td class="px-4">
+                                        <div class="d-flex align-items-center gap-1">
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                            <span class="fw-semibold">{{ coach.rating }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 fw-semibold">${{ coach.pricePerSession }}</td>
+                                    <td class="px-4 text-end">
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <a href="{{ path('app_coach_back', {'id': coach.id}) }}" class="btn btn-sm btn-primary d-flex align-items-center gap-1" title="Edit"><i class="bi bi-pencil-square"></i><span>Edit</span></a>
+                                            <form method="post" action="{{ path('app_coach_delete', {'id': coach.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this coach?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ coach.id) }}">
+                                                <button class="btn btn-sm btn-danger d-flex align-items-center gap-1" title="Delete"><i class="bi bi-trash"></i><span>Delete</span></button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <i class="bi bi-inbox display-4 mb-3 d-block"></i>
+                                        <p class="mb-0">No coaches found matching your criteria.</p>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                
+                {# Pagination - disable sortable to prevent OrderByWalker errors #}
+                <div class="d-flex justify-content-center mt-3">
+                    {{ knp_pagination_render(pagination, null, {}, {'sortable': false}) }}
+                </div>
+                </div>
+
+                <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">
+                        {% if editing %}
+                            Edit coach #{{ currentCoach.id }}
+                        {% else %}
+                            Create new coach
+                        {% endif %}
+                    </h2>
+
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        {{ form_widget(form) }}
+                        <button class="btn btn-success">{% if editing %}Update{% else %}Save{% endif %}</button>
+                    {{ form_end(form) }}
+                </div>
+                </div>
+            </div>
+        </section>
+    {% endif %}
+{% endblock %}
+

@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}NexusPlay • Live Streams{% endblock %}
+
+{% block body %}
+<section class="np-section np-animate-in">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Streaming</span>
+        <h1 class="np-section-title">Live Streams</h1>
+        <p class="np-section-subtitle">Watch PRO players live from NexusPlay.</p>
+    </div>
+
+    {# Search and Filter Form #}
+    <div class="np-card mb-4">
+        <div class="np-card__body">
+            <form method="get" class="row g-3">
+                <div class="col-md-5">
+                    <input type="text" name="search" class="form-control" placeholder="Search stream or player..." value="{{ app.request.query.get('search') }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="isLive" class="form-select">
+                        <option value="">All Streams</option>
+                        <option value="1" {% if app.request.query.get('isLive') == '1' %}selected{% endif %}>Live Only</option>
+                        <option value="0" {% if app.request.query.get('isLive') == '0' %}selected{% endif %}>Offline</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="sortBy" class="form-select">
+                        <option value="createdAt" {% if app.request.query.get('sortBy') == 'createdAt' %}selected{% endif %}>Newest</option>
+                        <option value="viewerCount" {% if app.request.query.get('sortBy') == 'viewerCount' %}selected{% endif %}>Viewers</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if pagination|length == 0 %}
+        <div class="np-empty-state">
+            <div class="np-empty-state__icon">📺</div>
+            <div class="np-empty-state__title">No Streams Found</div>
+            <p>No streams match your search criteria.</p>
+        </div>
+    {% else %}
+        <div class="np-card-grid">
+            {% for stream in pagination %}
+                <a href="{{ stream.url }}" target="_blank" rel="noopener noreferrer" class="np-card hover-lift" style="text-decoration: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="font-weight-semibold">{{ stream.player.nickname }}</span>
+                        {% if stream.isLive %}
+                            <span class="np-status np-status--live">● LIVE</span>
+                        {% endif %}
+                    </div>
+                    <div class="np-card-title" style="font-size: 1.1rem;">{{ stream.title }}</div>
+                    <div class="text-muted" style="font-size: 0.8rem;">
+                        Started {{ stream.createdAt|date('M d, Y H:i') }}
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+        
+        {# Pagination #}
+        <div class="d-flex justify-content-center mt-4">
+            {{ knp_pagination_render(pagination, null, {}, {'sortable': false}) }}
+        </div>
+    {% endif %}
+</section>
+{% endblock %}
+

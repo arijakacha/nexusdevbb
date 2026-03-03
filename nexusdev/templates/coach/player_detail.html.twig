@@ -1,0 +1,170 @@
+{% extends 'base_coach.html.twig' %}
+
+{% block title %}{{ player.nickname }} - Player Details{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Player Profile</h1>
+            <p class="np-section-subtitle">View {{ player.nickname }}'s details, statistics, and coaching history.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                {# Player Info Card #}
+                <div class="np-form-card np-animate-in-delayed mb-4">
+                    <div class="d-flex align-items-start gap-4 mb-4">
+                        {% if player.profilePicture %}
+                            <img src="{{ asset('uploads/' ~ player.profilePicture) }}" alt="{{ player.nickname }}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                                <span style="font-size: 2.5rem;">{{ player.nickname|first|upper }}</span>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <h2 class="mb-1">{{ player.nickname }}</h2>
+                            <p class="text-muted mb-2">{{ player.realName|default('Real name not provided') }}</p>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <span class="badge bg-info">{{ player.getRank() }}</span>
+                                {% if player.isPro %}
+                                    <span class="badge bg-warning text-dark">PRO</span>
+                                {% endif %}
+                                <span class="badge bg-secondary">{{ player.game.name|default('No game') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label class="text-muted">Score</label>
+                            <p class="mb-0 fw-bold">{{ player.score }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="text-muted">Role</label>
+                            <p class="mb-0">{{ player.role|default('Not specified') }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="text-muted">Nationality</label>
+                            <p class="mb-0">{{ player.nationality|default('Not specified') }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="text-muted">Team</label>
+                            <p class="mb-0">{{ player.team.name|default('No team') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {# Coaching History #}
+                <div class="np-form-card np-animate-in-delayed mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="np-section-title mb-0">Coaching History</h3>
+                        <span class="badge bg-primary">{{ sessions|length }} session{% if sessions|length != 1 %}s{% endif %}</span>
+                    </div>
+                    
+                    {% if sessions is empty %}
+                        <p class="text-muted">No coaching sessions with this player yet.</p>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for session in sessions %}
+                                        <tr>
+                                            <td>{{ session.scheduledAt|date('Y-m-d') }}</td>
+                                            <td>{{ session.scheduledAt|date('H:i') }}</td>
+                                            <td>
+                                                <span class="badge {% if session.status == 'COMPLETED' %}bg-success{% elseif session.status == 'CONFIRMED' %}bg-primary{% elseif session.status == 'CANCELLED' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                                    {{ session.status }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if session.notes %}
+                                                    <span class="text-truncate d-inline-block" style="max-width: 200px; font-size: 0.85rem;" title="{{ session.notes }}">{{ session.notes }}</span>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# Statistics #}
+                <div class="np-form-card np-animate-in-delayed">
+                    <h3 class="np-section-title mb-3">Performance Statistics</h3>
+                    
+                    {% if statistics is empty %}
+                        <p class="text-muted">No statistics available for this player.</p>
+                    {% else %}
+                        <div class="row">
+                            {% for stat in statistics %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="p-3 rounded" style="background: rgba(59, 130, 246, 0.1);">
+                                        <h6 class="mb-2">{{ stat.game.name }}</h6>
+                                        <div class="row text-center">
+                                            <div class="col-4">
+                                                <div style="font-size: 1.2rem; font-weight: 700; color: #3b82f6;">{{ stat.matchesPlayed }}</div>
+                                                <div style="font-size: 0.75rem; color: #94a3b8;">Matches</div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div style="font-size: 1.2rem; font-weight: 700; color: #10b981;">{{ stat.wins }}</div>
+                                                <div style="font-size: 0.75rem; color: #94a3b8;">Wins</div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div style="font-size: 1.2rem; font-weight: 700; color: #8b5cf6;">{{ stat.winRate }}%</div>
+                                                <div style="font-size: 0.75rem; color: #94a3b8;">Win Rate</div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 text-center">
+                                            <span style="font-size: 0.75rem; color: #94a3b8;">
+                                                KDA: {{ stat.kills }}/{{ stat.deaths }}/{{ stat.assists }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-card np-animate-in-delayed mb-4">
+                    <h5 class="mb-3">Quick Actions</h5>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="{{ path('app_coach_back', {'date': "now"|date('Y-m-d')}) }}" class="btn btn-success btn-sm">Schedule Session</a>
+                        <a href="{{ path('app_coach_back') }}" class="btn btn-outline-primary btn-sm">Back to Dashboard</a>
+                    </div>
+                </div>
+
+                <div class="np-card np-animate-in-delayed">
+                    <h5 class="mb-3">Player Summary</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Member Since</span>
+                        <span>{{ player.createdAt|date('M Y') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Sessions</span>
+                        <span class="badge bg-primary">{{ sessions|length }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Player ID</span>
+                        <span class="font-monospace" style="font-size: 0.8rem;">#{{ player.id }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

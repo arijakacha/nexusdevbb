@@ -1,0 +1,74 @@
+security:
+  password_hashers:
+    App\Entity\User:
+      algorithm: plaintext
+
+  providers:
+    app_user_provider:
+      entity:
+        class: App\Entity\User
+        property: email
+
+  role_hierarchy:
+    ROLE_ADMIN: [ROLE_COACH, ROLE_ORGANIZATION, ROLE_USER]
+
+  firewalls:
+    dev:
+      pattern: ^/(?:_(profiler|wdt)|css|images|js)/
+      security: false
+
+    login:
+      pattern: ^/api/auth
+      stateless: true
+      json_login:
+        check_path: /api/auth/login
+        username_path: email
+        password_path: password
+        provider: app_user_provider
+        success_handler: lexik_jwt_authentication.handler.authentication_success
+        failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+    api:
+      pattern: ^/api
+      stateless: true
+      jwt: ~
+
+    main:
+      lazy: true
+      provider: app_user_provider
+      user_checker: App\Security\UserChecker
+      form_login:
+        login_path: app_login
+        check_path: app_login
+        default_target_path: app_post_login_redirect
+      logout:
+        path: app_logout
+        target: front_home
+
+  access_control:
+    - { path: ^/login$, roles: PUBLIC_ACCESS }
+    - { path: ^/api/auth/login$, roles: PUBLIC_ACCESS }
+    - { path: ^/api/admin, roles: ROLE_ADMIN }
+    - { path: ^/api, roles: ROLE_USER }
+    - { path: ^/BUser, roles: ROLE_ADMIN }
+    - { path: ^/BHome, roles: ROLE_ADMIN }
+    - { path: ^/BProduct, roles: [ROLE_ADMIN, ROLE_ORGANIZATION] }
+    - { path: ^/BCoach, roles: ROLE_COACH }
+    - { path: ^/BPlayer, roles: ROLE_USER }
+    - { path: ^/BOrganization, roles: ROLE_ORGANIZATION }
+    - { path: ^/BGame, roles: ROLE_ADMIN }
+    - { path: ^/BTeam, roles: ROLE_ADMIN }
+    - { path: ^/BContent, roles: [ROLE_ADMIN, ROLE_COACH] }
+    - { path: ^/BForumPost, roles: [ROLE_ADMIN, ROLE_COACH] }
+    - { path: ^/BComment, roles: ROLE_ADMIN }
+    - { path: ^/BNotification/\d+, roles: ROLE_USER }
+    - { path: ^/BNotification/my, roles: ROLE_USER }
+    - { path: ^/BNotification/back, roles: ROLE_USER }
+    - { path: ^/BNotification, roles: ROLE_ADMIN }
+    - { path: ^/BOrder, roles: ROLE_ADMIN }
+    - { path: ^/BPayment, roles: ROLE_ADMIN }
+    - { path: ^/BStatistic, roles: ROLE_ADMIN }
+    - { path: ^/BStream, roles: ROLE_ADMIN }
+    - { path: ^/BCoachingSession, roles: ROLE_ADMIN }
+    - { path: ^/BVirtualCurrency, roles: ROLE_ADMIN }
+    - { path: ^/BProductPurchase, roles: ROLE_ADMIN }

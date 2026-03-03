@@ -1,0 +1,259 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ player.nickname }} Statistics - NexusPlay{% endblock %}
+
+{% block body %}
+<section class="np-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="np-card" style="padding: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <div>
+                            <h1 class="np-section-title">📊 {{ player.nickname }} Statistics</h1>
+                            <p class="np-text-muted">Detailed performance metrics and career stats</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 2rem; font-weight: bold; color: var(--np-primary);">{{ player.rank ?? 'Unranked' }}</div>
+                            <div class="np-text-muted">Current Rank</div>
+                        </div>
+                    </div>
+                    
+                    {% if statistics is not empty %}
+                        {# Riot Rank Display #}
+                        {% set lolStats = null %}
+                        {% for stat in statistics %}
+                            {% if stat.game and stat.game.name == 'League of Legends' and stat.rankTier %}
+                                {% set lolStats = stat %}
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if lolStats %}
+                            <div class="row" style="margin-bottom: 2rem;">
+                                <div class="col-md-12">
+                                    <div class="np-card" style="padding: 2rem; background: linear-gradient(135deg, #1e2328 0%, #0f1419 100%); border: 2px solid 
+                                        {% if lolStats.rankTier == 'CHALLENGER' %}#f8c537
+                                        {% elseif lolStats.rankTier == 'GRANDMASTER' %}#ff4d4d
+                                        {% elseif lolStats.rankTier == 'MASTER' %}#9b59b6
+                                        {% elseif lolStats.rankTier == 'DIAMOND' %}#3498db
+                                        {% elseif lolStats.rankTier == 'PLATINUM' %}#2ecc71
+                                        {% elseif lolStats.rankTier == 'GOLD' %}#f1c40f
+                                        {% elseif lolStats.rankTier == 'SILVER' %}#95a5a6
+                                        {% elseif lolStats.rankTier == 'BRONZE' %}#d35400
+                                        {% else %}#7f8c8d
+                                        {% endif %}; border-radius: 12px; color: white; text-align: center;">
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+                                            <img src="https://opgg-static.akamaized.net/images/medals_new/{{ lolStats.rankTier|lower|replace({'é': 'e'}) }}.png" alt="{{ lolStats.rankTier }}" style="width: 64px; height: 64px;" onerror="this.style.display='none'">
+                                            <div>
+                                                <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 0.25rem;">LEAGUE OF LEGENDS RANK</div>
+                                                <div style="font-size: 2rem; font-weight: bold;">{{ lolStats.rankTier }} {{ lolStats.rankDivision }}</div>
+                                                <div style="font-size: 1rem; opacity: 0.9;">{{ lolStats.leaguePoints }} LP</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="row" style="margin-bottom: 2rem;">
+                            <div class="col-md-3">
+                                <div class="np-card" style="text-align: center; padding: 1.5rem; background: var(--np-surface);">
+                                    <div style="font-size: 2.5rem; font-weight: bold; color: var(--np-success);">{{ statistics.matches_played ?? 0 }}</div>
+                                    <div class="np-text-muted">Matches Played</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="np-card" style="text-align: center; padding: 1.5rem; background: var(--np-surface);">
+                                    <div style="font-size: 2.5rem; font-weight: bold; color: var(--np-success);">{{ statistics.wins ?? 0 }}</div>
+                                    <div class="np-text-muted">Wins</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="np-card" style="text-align: center; padding: 1.5rem; background: var(--np-surface);">
+                                    <div style="font-size: 2.5rem; font-weight: bold; color: var(--np-danger);">{{ statistics.losses ?? 0 }}</div>
+                                    <div class="np-text-muted">Losses</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="np-card" style="text-align: center; padding: 1.5rem; background: var(--np-surface);">
+                                    <div style="font-size: 2.5rem; font-weight: bold; color: var(--np-primary);">{{ statistics.win_rate ?? 0 }}%</div>
+                                    <div class="np-text-muted">Win Rate</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="np-card" style="padding: 1.5rem;">
+                                    <h4 style="margin-bottom: 1rem; color: var(--np-info);">⚔️ Combat Stats</h4>
+                                    <table class="table np-table">
+                                        <tbody>
+                                            <tr>
+                                                <td>Kills</td>
+                                                <td style="text-align: right; font-weight: bold;">{{ statistics.kills ?? 0 }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Deaths</td>
+                                                <td style="text-align: right; font-weight: bold;">{{ statistics.deaths ?? 0 }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Assists</td>
+                                                <td style="text-align: right; font-weight: bold;">{{ statistics.assists ?? 0 }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>K/D Ratio</td>
+                                                <td style="text-align: right; font-weight: bold;">
+                                                    {% if (statistics.deaths ?? 0) > 0 %}
+                                                        {{ ((statistics.kills ?? 0) / statistics.deaths)|number_format(2) }}
+                                                    {% else %}
+                                                        {{ statistics.kills ?? 0 }}
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="np-card" style="padding: 1.5rem;">
+                                    <h4 style="margin-bottom: 1rem; color: var(--np-warning);">🏆 Achievements</h4>
+                                    {% if statistics.achievements is defined and statistics.achievements is not empty %}
+                                        <ul style="list-style: none; padding: 0;">
+                                            {% for achievement in statistics.achievements %}
+                                                <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--np-border);">
+                                                    🏅 {{ achievement }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <p class="np-text-muted">No achievements yet. Keep playing!</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="np-card" style="padding: 1.5rem;">
+                                    <h4 style="margin-bottom: 1rem; color: var(--np-success);">📈 Progress</h4>
+                                    <div style="margin-bottom: 1rem;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                            <span>Current Score</span>
+                                            <span style="font-weight: bold;">{{ player.score }}</span>
+                                        </div>
+                                        <div style="background: var(--np-border); height: 8px; border-radius: 4px; overflow: hidden;">
+                                            <div style="background: var(--np-primary); height: 100%; width: {{ min((player.score / 2000) * 100, 100) }}%;"></div>
+                                        </div>
+                                        <small class="np-text-muted">{{ 2000 - player.score }} points to Diamond</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="np-empty" style="text-align: center; padding: 3rem;">
+                            <div style="font-size: 4rem; margin-bottom: 1rem;">📊</div>
+                            <h3>No Statistics Yet</h3>
+                            <p class="np-text-muted">Start playing matches to see your statistics here!</p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if is_granted('PLAYER_PROFILE_EDIT', player) %}
+                        <hr style="border-color: var(--np-border); margin: 2rem 0;">
+                        
+                        {# Riot Games Sync Section #}
+                        <div style="margin-bottom: 2rem;">
+                            <h4 style="margin-bottom: 1rem;">🎮 Riot Games Sync</h4>
+                            {% if player.user.riotSummonerName %}
+                                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: var(--np-surface); border-radius: 8px;">
+                                    <div style="width: 40px; height: 40px; background: var(--np-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">⚔️</div>
+                                    <div>
+                                        <div style="font-weight: bold;">{{ player.user.riotSummonerName }}</div>
+                                        <div style="font-size: 0.85rem; color: var(--np-text-muted);">Region: {{ player.user.riotRegion|upper|default('EUW') }}</div>
+                                    </div>
+                                </div>
+                                {% if player.user.riotLastSyncAt %}
+                                    <div style="font-size: 0.8rem; color: var(--np-text-muted); margin-bottom: 1rem;">
+                                        🔄 Last synced: {{ player.user.riotLastSyncAt|date('M d, Y H:i') }}
+                                    </div>
+                                {% endif %}
+                                <button onclick="syncRiotStats()" class="btn btn-primary" id="syncBtn">
+                                    🔄 Sync Stats from Riot API
+                                </button>
+                                <a href="{{ path('front_player_edit', {'id': player.id}) }}" class="btn btn-outline-secondary ms-2">
+                                    ✏️ Change Account
+                                </a>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <p>Link your League of Legends account to automatically sync your rank, match history, and stats from Riot Games.</p>
+                                    <a href="{{ path('front_player_edit', {'id': player.id}) }}" class="btn btn-primary">
+                                        ➕ Add Riot Account
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <h4 style="margin-bottom: 1rem;">Update Statistics Manually</h4>
+                            <form method="post" action="{{ path('app_player_update_stats', {'id': player.id}) }}" class="row">
+                                <div class="col-md-2 mb-2">
+                                    <input type="number" name="stats[matches_played]" class="form-control" placeholder="Matches" min="0">
+                                </div>
+                                <div class="col-md-2 mb-2">
+                                    <input type="number" name="stats[wins]" class="form-control" placeholder="Wins" min="0">
+                                </div>
+                                <div class="col-md-2 mb-2">
+                                    <input type="number" name="stats[losses]" class="form-control" placeholder="Losses" min="0">
+                                </div>
+                                <div class="col-md-2 mb-2">
+                                    <input type="number" name="stats[kills]" class="form-control" placeholder="Kills" min="0">
+                                </div>
+                                <div class="col-md-2 mb-2">
+                                    <input type="number" name="stats[deaths]" class="form-control" placeholder="Deaths" min="0">
+                                </div>
+                                <div class="col-md-2 mb-2">
+                                    <button type="submit" class="btn btn-primary w-100">Update</button>
+                                </div>
+                            </form>
+                            <small class="np-text-muted">Note: Score and rank will be updated automatically based on your performance.</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+function syncRiotStats() {
+    const btn = document.getElementById('syncBtn');
+    btn.disabled = true;
+    btn.innerHTML = '🔄 Syncing...';
+    
+    fetch('/player/riot/sync-stats', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            btn.innerHTML = '✅ Synced!';
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = '🔄 Sync Stats from Riot API';
+            alert(data.error || 'Failed to sync stats');
+        }
+    })
+    .catch(error => {
+        btn.disabled = false;
+        btn.innerHTML = '🔄 Sync Stats from Riot API';
+        alert('Error syncing stats: ' + error.message);
+    });
+}
+</script>
+{% endblock %}
+

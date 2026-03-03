@@ -1,0 +1,66 @@
+{% extends 'base_coach.html.twig' %}
+
+{% block title %}Session History{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Session History</h1>
+            <p class="np-section-subtitle">View all your coaching sessions and their status.</p>
+        </div>
+
+        <div class="np-form-card np-animate-in-delayed">
+            {% if sessions is empty %}
+                <div class="text-center py-5">
+                    <p class="text-muted">No sessions found.</p>
+                    <a href="{{ path('app_coach_back') }}" class="btn btn-primary">Create Your First Session</a>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Player</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in sessions %}
+                                <tr>
+                                    <td>#{{ session.id }}</td>
+                                    <td>
+                                        <a href="{{ path('app_coach_player_detail', {'id': session.player.id}) }}" style="color: #3b82f6; text-decoration: none;">
+                                            {{ session.player.nickname }}
+                                        </a>
+                                    </td>
+                                    <td>{{ session.scheduledAt|date('Y-m-d H:i') }}</td>
+                                    <td>
+                                        <span class="badge {% if session.status == 'COMPLETED' %}bg-success{% elseif session.status == 'CONFIRMED' %}bg-primary{% elseif session.status == 'CANCELLED' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                            {{ session.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if session.notes %}
+                                            <span class="badge bg-info">Yes</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('app_coach_session_detail', {'id': session.id}) }}" class="btn btn-sm btn-primary">View/Edit</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}
+

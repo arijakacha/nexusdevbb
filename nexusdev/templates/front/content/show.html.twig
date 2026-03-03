@@ -1,0 +1,560 @@
+{% extends is_granted('ROLE_ORGANIZATION') ? 'base_organization.html.twig' : 'base.html.twig' %}
+
+{% block title %}{{ content.title }} • Guides{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .article-page {
+            padding-bottom: 60px;
+        }
+        .article-layout {
+            display: grid;
+            grid-template-columns: 2.1fr 1.1fr;
+            gap: 32px;
+        }
+        .article-hero {
+            border-radius: 12px;
+            overflow: hidden;
+            background: radial-gradient(circle at top left, #991b1b, #020617 55%, #020617 100%);
+            padding: 20px 22px;
+            margin-bottom: 22px;
+        }
+        .article-hero-type {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(15,23,42,0.9);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: .16em;
+            margin-bottom: 10px;
+        }
+        .article-hero-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .article-hero-meta {
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+        .article-body {
+            background: #020617;
+            border-radius: 12px;
+            padding: 22px 24px;
+            border: 1px solid rgba(148,163,184,0.25);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #e5e7eb;
+        }
+        .article-body p {
+            margin: 0 0 0.9rem;
+        }
+        .article-body ul,
+        .article-body ol {
+            margin: 0.2rem 0 1rem 1.25rem;
+        }
+        .article-body li {
+            margin: 0.25rem 0;
+        }
+        .article-body a {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
+        .article-body blockquote {
+            margin: 1rem 0;
+            padding: 0.75rem 1rem;
+            border-left: 4px solid rgba(96,165,250,0.7);
+            background: rgba(15,23,42,0.55);
+            border-radius: 10px;
+            color: #cbd5e1;
+        }
+        .article-body h2 {
+            font-size: 1.1rem;
+            margin-top: 1.8rem;
+            margin-bottom: 0.6rem;
+            text-transform: uppercase;
+        }
+        .article-body h1 {
+            font-size: 1.35rem;
+            margin-top: 1.8rem;
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+        }
+        .article-body h3 {
+            font-size: 1.05rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .article-body p {
+            margin-bottom: 0.9rem;
+        }
+        .guide-comments {
+            background: #020617;
+            border-radius: 12px;
+            padding: 18px 20px;
+            border: 1px solid rgba(148,163,184,0.25);
+            margin-top: 20px;
+        }
+        .guide-comments textarea {
+            width: 100%;
+            min-height: 160px;
+            background: #0b1220;
+            color: #e5e7eb;
+            border: 1px solid rgba(148,163,184,0.25);
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: none;
+        }
+        .guide-comment {
+            border-bottom: 1px solid rgba(31,41,55,0.7);
+            padding: 10px 0;
+        }
+        .guide-comment:last-child {
+            border-bottom: none;
+        }
+        .guide-comment-meta {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            margin-bottom: 4px;
+        }
+        .guide-comment-content {
+            font-size: 0.9rem;
+        }
+        .guide-comment-content p {
+            margin: 0 0 0.7rem;
+        }
+        .guide-comment-content ul,
+        .guide-comment-content ol {
+            margin: 0.2rem 0 0.8rem 1.1rem;
+        }
+        .guide-comment-content a {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
+        .guide-comment-content blockquote {
+            margin: 0.8rem 0;
+            padding: 0.6rem 0.9rem;
+            border-left: 3px solid rgba(96,165,250,0.7);
+            background: rgba(15,23,42,0.55);
+            border-radius: 10px;
+            color: #cbd5e1;
+        }
+        .guide-comments .cke {
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(148,163,184,0.25);
+        }
+        .guide-comments .cke_top,
+        .guide-comments .cke_bottom {
+            background: rgba(15,23,42,0.85);
+            border-color: rgba(148,163,184,0.2);
+        }
+        .guide-comments .cke_contents {
+            min-height: 160px;
+            background: #0b1220;
+        }
+        .guide-comments .cke_editable {
+            color: #e5e7eb;
+            font-size: 0.95rem;
+        }
+        .article-sidebar-block {
+            background: #020617;
+            border-radius: 12px;
+            padding: 16px 18px;
+            border: 1px solid rgba(148,163,184,0.25);
+            margin-bottom: 18px;
+        }
+        .article-sidebar-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: .18em;
+            margin-bottom: 10px;
+        }
+        .article-sidebar-title span {
+            color: #4f46e5;
+        }
+        .article-sidebar-item {
+            padding: 7px 0;
+            border-bottom: 1px solid rgba(31,41,55,0.7);
+        }
+        .article-sidebar-item:last-child {
+            border-bottom: none;
+        }
+        .article-sidebar-item a {
+            display: block;
+            text-decoration: none;
+            color: #e5e7eb;
+            font-size: 0.85rem;
+        }
+        .article-sidebar-item a:hover {
+            color: #818cf8;
+        }
+        .article-sidebar-date {
+            font-size: 0.7rem;
+            color: #6b7280;
+        }
+        @media (max-width: 992px) {
+            .article-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in article-page">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Guides</span>
+            <h1 class="np-section-title">{{ content.title }}</h1>
+            <p class="np-section-subtitle">In-depth article from the NexusPlay staff and coaches.</p>
+        </div>
+
+        <div class="article-layout">
+            <div>
+                <div class="article-hero">
+                    {% if content.image %}
+                        <img src="{{ asset(content.image) }}" alt="{{ content.title }}" style="width:100%; max-height:260px; object-fit:cover; border-radius:10px; margin-bottom:12px;">
+                    {% endif %}
+                    <div class="article-hero-type">{{ content.type }}</div>
+                    <div class="article-hero-title">{{ content.title }}</div>
+                    <div class="article-hero-meta">
+                        {{ content.createdAt ? content.createdAt|date('M d, Y') : '' }} •
+                        {{ content.author ? content.author.username : 'Unknown' }}
+                    </div>
+                </div>
+
+                <article class="article-body">
+                    {{ content.body|raw }}
+                </article>
+
+                <div class="guide-comments">
+                    <h3 style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: .18em; margin-bottom: 10px;">Comments</h3>
+
+                    {% if comments is empty %}
+                        <p class="text-muted mb-3">No comments yet. Be the first to reply.</p>
+                    {% else %}
+                        {% for comment in comments %}
+                            <div class="guide-comment">
+                                <div class="guide-comment-meta">
+                                    {{ comment.author ? comment.author.username : 'User' }} •
+                                    {{ comment.createdAt ? comment.createdAt|date('M d, Y H:i') : '' }}
+                                </div>
+                                <div class="guide-comment-content">
+                                    {{ comment.content|raw }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if commentForm %}
+                        <div class="mt-3">
+                            {{ form_start(commentForm) }}
+                                {{ form_widget(commentForm) }}
+                                <div class="mt-2" style="padding: 12px; border: 1px solid rgba(148,163,184,0.25); border-radius: 10px; background: rgba(2,6,23,0.6);">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <div style="font-weight: 700; font-size: 0.9rem;">Mic to Text (Free)</div>
+                                        <span id="np-cmt-stt-status" style="font-size: 0.85rem; color: #94a3b8;"></span>
+                                    </div>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <button type="button" class="btn btn-sm btn-success" id="np-cmt-stt-start">Start Listening</button>
+                                        <button type="button" class="btn btn-sm btn-warning" id="np-cmt-stt-stop" disabled>Stop</button>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary mt-2">Post comment</button>
+                            {{ form_end(commentForm) }}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mt-3 mb-0">Log in to comment on this guide.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <aside>
+                <div class="article-sidebar-block">
+                    <div class="article-sidebar-title">Most <span>popular guides</span></div>
+                    {% set hasOther = false %}
+                    {% for item in popularContents %}
+                        {% if item.id != content.id %}
+                            {% set hasOther = true %}
+                            <div class="article-sidebar-item">
+                                <a href="{{ path('front_content_show', {'id': item.id}) }}">{{ item.title }}</a>
+                                <div class="article-sidebar-date">{{ item.createdAt ? item.createdAt|date('M d, Y') : '' }}</div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    {% if not hasOther %}
+                        <p class="text-muted mb-0">No other guides yet.</p>
+                    {% endif %}
+                </div>
+            </aside>
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        (function() {
+            const btnStart = document.getElementById('np-cmt-stt-start');
+            const btnStop = document.getElementById('np-cmt-stt-stop');
+            const statusEl = document.getElementById('np-cmt-stt-status');
+
+            if (!btnStart || !btnStop) return;
+
+            const textarea = document.getElementById('guide_comment_content')
+                || document.querySelector('.guide-comments form textarea')
+                || document.querySelector('.guide-comments textarea')
+                || document.querySelector('textarea[id$="_content"]');
+            if (!textarea) {
+                if (statusEl) statusEl.textContent = 'Textarea not found';
+                btnStart.disabled = true;
+                btnStop.disabled = true;
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                if (statusEl) statusEl.textContent = 'Speech not supported';
+                btnStart.disabled = true;
+                btnStop.disabled = true;
+                return;
+            }
+
+            function getCkeditorInstance() {
+                if (!textarea || !textarea.id) return null;
+                if (!window.CKEDITOR) return null;
+                return CKEDITOR.instances && CKEDITOR.instances[textarea.id] ? CKEDITOR.instances[textarea.id] : null;
+            }
+
+            let recognition = null;
+            let isListening = false;
+            let lastError = null;
+            let startedAt = 0;
+            let gotAnyResult = false;
+
+            function isBrave() {
+                return typeof navigator !== 'undefined'
+                    && navigator.brave
+                    && typeof navigator.brave.isBrave === 'function';
+            }
+
+            function setStatus(text) {
+                if (statusEl) statusEl.textContent = text;
+            }
+
+            btnStart.addEventListener('click', () => {
+                if (isListening) return;
+
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = (navigator.language || 'en-US');
+                recognition.maxAlternatives = 1;
+
+                lastError = null;
+                gotAnyResult = false;
+                startedAt = Date.now();
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    btnStart.disabled = true;
+                    btnStop.disabled = false;
+                    setStatus('Listening...');
+                };
+
+                recognition.onresult = (event) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    if (transcript) {
+                        const editor = getCkeditorInstance();
+                        if (editor) {
+                            editor.insertText(transcript);
+                        } else {
+                            const existing = textarea.value || '';
+                            const sep = existing.trim() === '' ? '' : ' ';
+                            textarea.value = existing + sep + transcript;
+                        }
+                        gotAnyResult = true;
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    lastError = event && event.error ? event.error : 'unknown';
+                    console.warn('[SpeechRecognition] error event', event);
+                    setStatus('Speech error: ' + lastError);
+                    isListening = false;
+                    btnStart.disabled = false;
+                    btnStop.disabled = true;
+                };
+
+                recognition.onend = () => {
+                    isListening = false;
+                    btnStart.disabled = false;
+                    btnStop.disabled = true;
+                    const elapsedMs = Date.now() - startedAt;
+
+                    if (lastError === 'not-allowed' || lastError === 'service-not-allowed') {
+                        setStatus('Mic permission blocked.');
+                        return;
+                    }
+                    if (lastError === 'audio-capture') {
+                        setStatus('No microphone detected.');
+                        return;
+                    }
+                    if (lastError === 'network') {
+                        if (isBrave()) {
+                            setStatus('Speech error: network. In Brave: click the lion icon (Shields) -> OFF for this site, allow Microphone permission, then reload (Ctrl+F5).');
+                        } else {
+                            setStatus('Speech error: network. Check internet, reload, and retry.');
+                        }
+                        return;
+                    }
+                    if (!gotAnyResult && elapsedMs < 1200) {
+                        setStatus('Stopped immediately.');
+                        return;
+                    }
+
+                    setStatus('Stopped.');
+                };
+
+                try {
+                    recognition.start();
+                } catch (e) {
+                    setStatus('Could not start');
+                }
+            });
+
+            btnStop.addEventListener('click', () => {
+                if (recognition && isListening) {
+                    recognition.stop();
+                }
+            });
+
+            // Ensure CKEditor initializes and toolbar buttons show.
+            // Our script is loaded at the end of <body>, so DOMContentLoaded may have
+            // already fired; we must init immediately when possible.
+            function ensureTextareaVisible() {
+                if (!textarea) return;
+                // textarea is intentionally hidden; CKEditor UI will be shown instead
+            }
+
+            function initCkeditor() {
+                if (!textarea || !textarea.id) {
+                    ensureTextareaVisible();
+                    return;
+                }
+                if (!window.CKEDITOR) {
+                    setStatus('Editor not loaded (ckeditor.js missing).');
+                    ensureTextareaVisible();
+                    return;
+                }
+                if (CKEDITOR.instances && CKEDITOR.instances[textarea.id]) {
+                    return;
+                }
+                try {
+                    CKEDITOR.replace(textarea.id);
+                    setStatus('');
+                    // If initialization fails silently, ensure textarea stays visible.
+                    setTimeout(() => {
+                        const hasEditor = !!document.querySelector('.guide-comments .cke');
+                        if (!hasEditor) {
+                            setStatus('Editor failed to start. Check browser console.');
+                            ensureTextareaVisible();
+                        }
+                    }, 0);
+                } catch (e) {
+                    setStatus('Editor error. Check browser console.');
+                    ensureTextareaVisible();
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initCkeditor);
+            } else {
+                initCkeditor();
+            }
+
+            // Retry once shortly after in case ckeditor.js loads late.
+            setTimeout(initCkeditor, 300);
+        })();
+    </script>
+
+    <script>
+        (function() {
+            const statusEl = document.getElementById('np-cmt-stt-status');
+
+            function setStatus(text) {
+                if (statusEl) statusEl.textContent = text;
+            }
+
+            function findCommentTextarea() {
+                return document.getElementById('guide_comment_content')
+                    || document.querySelector('.guide-comments form textarea')
+                    || document.querySelector('.guide-comments textarea')
+                    || document.querySelector('textarea[id$="_content"]');
+            }
+
+            function forceInit() {
+                const textarea = findCommentTextarea();
+                if (!textarea || !textarea.id) {
+                    setStatus('Editor: textarea missing');
+                    return;
+                }
+
+                // textarea is intentionally hidden; CKEditor will replace it
+
+                if (!window.CKEDITOR) {
+                    setStatus('Editor not loaded (ckeditor.js missing).');
+                    return;
+                }
+
+                if (typeof CKEDITOR.replace !== 'function') {
+                    setStatus('Editor: CKEDITOR.replace not available');
+                    return;
+                }
+
+                if (CKEDITOR.instances && CKEDITOR.instances[textarea.id]) {
+                    setStatus('');
+                    return;
+                }
+
+                try {
+                    CKEDITOR.replace(textarea.id);
+                    console.log('[CKEditor] replace called for', textarea.id);
+                    setStatus('Editor loading...');
+                    setTimeout(() => {
+                        const instanceOk = !!(CKEDITOR.instances && CKEDITOR.instances[textarea.id]);
+                        const hasUi = !!document.querySelector('.guide-comments .cke');
+                        if (instanceOk && hasUi) {
+                            // Keep original textarea hidden (CKEditor UI is visible)
+                            setStatus('');
+                            return;
+                        }
+                        console.warn('[CKEditor] not initialized', { instanceOk, hasUi, id: textarea.id });
+                        setStatus('Editor did not initialize. Open console (F12).');
+                    }, 50);
+                } catch (e) {
+                    console.error('[CKEditor] replace error', e);
+                    setStatus('Editor error. Check browser console.');
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', forceInit);
+            } else {
+                forceInit();
+            }
+
+            setTimeout(forceInit, 500);
+        })();
+    </script>
+{% endblock %}
+

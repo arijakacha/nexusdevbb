@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Content Field Suggestions Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        textarea { 
+            width: 100%; 
+            padding: 12px; 
+            font-size: 16px; 
+            border: 2px solid #ddd; 
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        .suggestions { 
+            border: 1px solid #ccc; 
+            max-height: 200px; 
+            overflow-y: auto; 
+            position: absolute; 
+            background: white; 
+            z-index: 1000;
+            display: none;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .suggestion-item { 
+            padding: 12px; 
+            cursor: pointer; 
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        .suggestion-item:hover { background: #f8f9fa; }
+        .suggestion-item.selected { background: #007bff; color: white; }
+        .log { 
+            background: #e9ecef; 
+            padding: 15px; 
+            margin: 20px 0; 
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        h1 { color: #333; }
+        h3 { color: #666; }
+        .highlight { background: yellow; padding: 2px 4px; }
+    </style>
+</head>
+<body>
+    <h1>📝 Content Field Suggestions Test</h1>
+    
+    <div class="test-container">
+        <h3>Type in the textarea below. Try typing these words:</h3>
+        <ul>
+            <li>Type "<span class="highlight">th</span>" → should show: the, that, their, them, this</li>
+            <li>Type "<span class="highlight">go</span>" → should show: good</li>
+            <li>Type "<span class="highlight">wi</span>" → should show: will, with</li>
+            <li>Type "<span class="highlight">an</span>" → should show: and, another</li>
+        </ul>
+        
+        <div style="position: relative; margin-top: 20px;">
+            <textarea id="contentField" rows="6" placeholder="Start typing here to see suggestions..."></textarea>
+            <div id="suggestions" class="suggestions"></div>
+        </div>
+    </div>
+    
+    <div id="log" class="log">
+        <strong>Debug Log:</strong><br>
+        Waiting for input...
+    </div>
+
+    <script>
+        // Focus on content suggestions with common words
+        const contentWords = [
+            'the', 'that', 'their', 'them', 'this', 'there', 'these', 'those',
+            'and', 'another', 'about', 'which', 'with', 'from', 'they', 'have',
+            'been', 'will', 'would', 'could', 'should', 'good', 'great', 'time',
+            'people', 'think', 'know', 'make', 'work', 'want', 'need', 'look',
+            'come', 'take', 'give', 'tell', 'ask', 'help', 'try', 'find', 'feel'
+        ];
+        
+        const contentField = document.getElementById('contentField');
+        const suggestionsDiv = document.getElementById('suggestions');
+        const log = document.getElementById('log');
+        
+        function logMessage(msg) {
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML += time + ': ' + msg + '<br>';
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        let selectedIndex = -1;
+        let currentSuggestions = [];
+        
+        contentField.addEventListener('input', function() {
+            const text = this.value;
+            const words = text.split(/\s+/);
+            const currentWord = words[words.length - 1];
+            
+            logMessage('Text: "' + text + '" | Current word: "' + currentWord + '"');
+            
+            if (currentWord.length < 2) {
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+            
+            // Find matching suggestions
+            const matches = contentWords.filter(word => 
+                word.toLowerCase().startsWith(currentWord.toLowerCase())
+            );
+            
+            logMessage('Found ' + matches.length + ' matches: [' + matches.join(', ') + ']');
+            
+            if (matches.length > 0) {
+                showSuggestions(matches, currentWord);
+            } else {
+                suggestionsDiv.style.display = 'none';
+                logMessage('No matches - hiding suggestions');
+            }
+        });
+        
+        function showSuggestions(suggestions, currentWord) {
+            currentSuggestions = suggestions;
+            selectedIndex = -1;
+            suggestionsDiv.innerHTML = '';
+            
+            suggestions.forEach((word, index) => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                item.textContent = word;
+                
+                item.onclick = () => selectSuggestion(word, currentWord);
+                item.onmouseover = () => {
+                    item.classList.add('selected');
+                    selectedIndex = index;
+                };
+                item.onmouseout = () => {
+                    item.classList.remove('selected');
+                    selectedIndex = -1;
+                };
+                
+                suggestionsDiv.appendChild(item);
+            });
+            
+            // Position suggestions below textarea
+            const rect = contentField.getBoundingClientRect();
+            suggestionsDiv.style.top = (rect.height + 5) + 'px';
+            suggestionsDiv.style.left = '0px';
+            suggestionsDiv.style.width = rect.width + 'px';
+            suggestionsDiv.style.display = 'block';
+            
+            logMessage('✅ Showing ' + suggestions.length + ' suggestions');
+        }
+        
+        function selectSuggestion(word, currentWord) {
+            const text = contentField.value;
+            const words = text.split(/\s+/);
+            words[words.length - 1] = word;
+            contentField.value = words.join(' ');
+            suggestionsDiv.style.display = 'none';
+            contentField.focus();
+            logMessage('✅ Selected: "' + word + '"');
+        }
+        
+        // Keyboard navigation
+        contentField.addEventListener('keydown', function(e) {
+            if (suggestionsDiv.style.display === 'none') return;
+            
+            const items = suggestionsDiv.querySelectorAll('.suggestion-item');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                updateSelection(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateSelection(items);
+            } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                e.preventDefault();
+                const currentWord = this.value.split(/\s+/).pop();
+                selectSuggestion(currentSuggestions[selectedIndex], currentWord);
+            } else if (e.key === 'Escape') {
+                suggestionsDiv.style.display = 'none';
+                selectedIndex = -1;
+            }
+        });
+        
+        function updateSelection(items) {
+            items.forEach((item, index) => {
+                if (index === selectedIndex) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+        
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!contentField.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                suggestionsDiv.style.display = 'none';
+                selectedIndex = -1;
+            }
+        });
+        
+        // Focus on the content field
+        contentField.focus();
+        logMessage('✅ Content suggestions test loaded - start typing!');
+    </script>
+</body>
+</html>

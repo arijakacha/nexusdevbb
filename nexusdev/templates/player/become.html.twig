@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Become a Player - NexusPlay{% endblock %}
+
+{% block body %}
+<section class="np-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="np-card" style="text-align: center; padding: 3rem;">
+                    <h1 class="np-section-title">🎮 Choose Your Game</h1>
+                    <p class="np-text-muted" style="margin-bottom: 2rem;">Select your primary game to start your journey!</p>
+                    
+                    <form method="post" class="np-form">
+                        <div class="mb-4">
+                            <label class="np-form-label">Select Game</label>
+                            <select name="game_id" class="form-control form-control-lg" required>
+                                <option value="">-- Choose Game --</option>
+                                {% for game in games %}
+                                    <option value="{{ game.id }}">{{ game.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div style="margin-top: 2rem;">
+                            <button type="submit" class="btn btn-primary btn-lg">Continue →</button>
+                        </div>
+                    </form>
+                    
+                    <p class="np-text-muted" style="margin-top: 1.5rem; font-size: 0.9rem;">
+                        💡 <em>Teams can recruit you later based on your performance!</em>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

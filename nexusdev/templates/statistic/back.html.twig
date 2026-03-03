@@ -1,0 +1,77 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Statistic management{% endblock %}
+
+{% block admin_content %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Statistics</h1>
+            <p class="np-section-subtitle">Manage performance statistics for games, teams and players.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                <h2>Statistics list</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Game</th>
+                            <th>Team</th>
+                            <th>Player</th>
+                            <th>Matches</th>
+                            <th>Wins</th>
+                            <th>Losses</th>
+                            <th>Win rate</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for statistic in statistics %}
+                        <tr>
+                            <td>{{ statistic.id }}</td>
+                            <td>{{ statistic.game.name }}</td>
+                            <td>{{ statistic.team ? statistic.team.name : '' }}</td>
+                            <td>{{ statistic.player ? statistic.player.nickname : '' }}</td>
+                            <td>{{ statistic.matchesPlayed }}</td>
+                            <td>{{ statistic.wins }}</td>
+                            <td>{{ statistic.losses }}</td>
+                            <td>{{ statistic.winRate }}</td>
+                            <td style="white-space: nowrap;">
+                                <a href="{{ path('app_statistic_back', {'id': statistic.id}) }}" class="btn btn-sm btn-primary">edit</a>
+                                <form method="post" action="{{ path('app_statistic_delete', {'id': statistic.id}) }}" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this statistic?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ statistic.id) }}">
+                                    <button class="btn btn-sm btn-danger">delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="9">no statistics found</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">
+                        {% if editing %}
+                            Edit statistic #{{ currentStatistic.id }}
+                        {% else %}
+                            Create new statistic
+                        {% endif %}
+                    </h2>
+
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        {{ form_widget(form) }}
+                        <button class="btn btn-success">{% if editing %}Update{% else %}Save{% endif %}</button>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

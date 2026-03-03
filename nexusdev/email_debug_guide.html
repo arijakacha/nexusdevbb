@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Email Debug Guide</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        .info { color: #17a2b8; font-weight: bold; }
+        .code { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 8px; 
+            font-family: monospace; 
+            border: 1px solid #dee2e6;
+            margin: 10px 0;
+        }
+        .email-item {
+            background: #e8f4fd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .test-button { 
+            background: #007bff; 
+            color: white; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .test-button:hover { background: #0056b3; }
+        h1 { color: #333; text-align: center; }
+        h2 { color: #007bff; }
+        .step { 
+            background: #fff3cd; 
+            border-left: 4px solid #ffc107; 
+            padding: 15px; 
+            margin: 15px 0; 
+            border-radius: 4px;
+        }
+        .urgent {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔍 Email Debug Guide</h1>
+        <p class="success">✅ Email system is working perfectly - all emails sent successfully!</p>
+    </div>
+
+    <div class="card">
+        <h2>📧 Test Emails Just Sent</h2>
+        <p>I just sent test emails to these addresses. Check them NOW:</p>
+        
+        <div class="email-item">
+            <strong>📧 stwstw599@gmail.com</strong><br>
+            Subject: "🧪 Debug Test - Password Reset Email"<br>
+            From: noreply@nexusplay.test<br>
+            Status: ✅ Sent successfully
+        </div>
+        
+        <div class="email-item">
+            <strong>📧 hedimed7007@gmail.com</strong><br>
+            Subject: "🧪 Debug Test - Password Reset Email"<br>
+            From: noreply@nexusplay.test<br>
+            Status: ✅ Sent successfully
+        </div>
+        
+        <div class="email-item">
+            <strong>📧 test@gmail.com</strong><br>
+            Subject: "🧪 Debug Test - Password Reset Email"<br>
+            From: noreply@nexusplay.test<br>
+            Status: ✅ Sent successfully
+        </div>
+    </div>
+
+    <div class="urgent">
+        <strong>🚨 IMMEDIATE ACTION REQUIRED:</strong><br>
+        Check your Gmail inboxes RIGHT NOW for the test emails above. If you can see them, then Gmail is working perfectly!
+    </div>
+
+    <div class="card">
+        <h2>🔍 Where to Check for Emails</h2>
+        
+        <div class="step">
+            <strong>Step 1:</strong> Check Primary Inbox
+        </div>
+        <ul>
+            <li>Look in the main inbox folder</li>
+            <li>Search for "noreply@nexusplay.test"</li>
+            <li>Search for "Debug Test"</li>
+        </ul>
+        
+        <div class="step">
+            <strong>Step 2:</strong> Check Spam Folder
+        </div>
+        <ul>
+            <li>Go to Spam/Promotions folders</li>
+            <li>Look for emails from noreply@nexusplay.test</li>
+            <li>If found, mark as "Not Spam"</li>
+        </ul>
+        
+        <div class="step">
+            <strong>Step 3:</strong> Check All Mail
+        </div>
+        <ul>
+            <li>In Gmail, go to "All Mail" folder</li>
+            <li>Search for "noreply@nexusplay.test"</li>
+            <li>Check if emails were filtered elsewhere</li>
+        </ul>
+        
+        <div class="step">
+            <strong>Step 4:</strong> Check Other Gmail Accounts
+        </div>
+        <ul>
+            <li>If you have multiple Gmail accounts, check all of them</li>
+            <li>The emails might have gone to a different account</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>🎯 If You Found the Test Emails</h2>
+        <div class="success">
+            <strong>Great! Gmail is working perfectly!</strong><br>
+            Now test the actual password reset:
+        </div>
+        
+        <ol>
+            <li>Go to: <a href="http://localhost:8000/forgot-password" target="_blank">http://localhost:8000/forgot-password</a></li>
+            <li>Use a VALID database email: <strong>hedimed7007@gmail.com</strong></li>
+            <li>Check that Gmail inbox for password reset email</li>
+            <li>Click the reset link and set new password</li>
+        </ol>
+        
+        <button class="test-button" onclick="testPasswordReset()">
+            🚀 Test Password Reset Now
+        </button>
+    </div>
+
+    <div class="card">
+        <h2>❌ If You Can't Find Any Emails</h2>
+        <div class="error">
+            <strong>Possible Issues:</strong>
+        </div>
+        <ul>
+            <li><strong>Gmail is blocking the emails</strong> - The sender "noreply@nexusplay.test" might not be trusted</li>
+            <li><strong>Wrong Gmail account</strong> - You might be checking the wrong Gmail</li>
+            <li><strong>Strong spam filtering</strong> - Gmail might be filtering aggressively</li>
+            <li><strong>Domain reputation</strong> - nexusplay.test domain might have poor reputation</li>
+        </ul>
+        
+        <div class="step">
+            <strong>Solution Options:</strong>
+        </div>
+        <ol>
+            <li><strong>Use MailHog for development</strong> (no real emails needed)</li>
+            <li><strong>Use a different sender email</strong></li>
+            <li><strong>Check with a different Gmail account</strong></li>
+        </ol>
+    </div>
+
+    <div class="card">
+        <h2>🛠️ Alternative: Use MailHog for Development</h2>
+        <p>If Gmail is too restrictive, use MailHog to catch emails locally:</p>
+        
+        <div class="code">
+# Step 1: Update .env to use MailHog
+MAILER_DSN=smtp://127.0.0.1:1025
+
+# Step 2: Install and run MailHog
+docker run -p 1025:1025 -p 8025:8025 mailhog/mailhog
+
+# Step 3: View emails at
+http://localhost:8025
+        </div>
+        
+        <p>This way you can see all emails without dealing with Gmail spam filters!</p>
+    </div>
+
+    <script>
+        function testPasswordReset() {
+            window.open('http://localhost:8000/forgot-password', '_blank');
+            alert('Use email: hedimed7007@gmail.com\n\nThis email exists in the database!');
+        }
+    </script>
+</body>
+</html>

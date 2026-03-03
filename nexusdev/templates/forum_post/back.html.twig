@@ -1,0 +1,562 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Forum post management{% endblock %}
+
+{% block admin_content %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Forum posts</h1>
+            <p class="np-section-subtitle">Moderate and manage forum topics.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                {# Reported Posts Section - Admin Only #}
+                {% if reportedPosts is defined and reportedPosts|length > 0 %}
+                    <div class="np-card mb-4 border-danger">
+                        <div class="np-card__header bg-danger text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                Reported Posts ({{ reportedPosts|length }})
+                            </h5>
+                        </div>
+                        <div class="np-card__body">
+                            {% for postId, reportData in reportedPosts %}
+                                <div class="border rounded p-3 mb-3 bg-light">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <h6 class="text-danger mb-2">
+                                                <i class="bi bi-flag-fill me-1"></i>
+                                                {{ reportData.post.title }}
+                                            </h6>
+                                            <p class="text-muted mb-2 small">
+                                                By <strong>{{ reportData.post.author.username }}</strong> • 
+                                                {{ reportData.post.createdAt|date('M d, Y H:i') }}
+                                            </p>
+                                            <div class="mb-2">
+                                                <span class="badge bg-danger">{{ reportData.report_count }} Report(s)</span>
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            </div>
+                                            {% if reportData.reports|length > 0 %}
+                                                <div class="small text-muted">
+                                                    <strong>Reports:</strong>
+                                                    {% for report in reportData.reports %}
+                                                        <span class="me-2">
+                                                            {{ report.type }} 
+                                                            {% if report.description %}({{ report.description|slice(0, 50) }}{% if report.description|length > 50 %}...{% endif %}){% endif %}
+                                                            by {{ report.reporter.username }}
+                                                        </span>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <div class="btn-group-vertical" role="group">
+                                                <a href="{{ path('app_forum_post_back', {'id': reportData.post.id}) }}" class="btn btn-sm btn-outline-primary mb-1">
+                                                    <i class="bi bi-eye me-1"></i>View Post
+                                                </a>
+                                                <form method="post" action="{{ path('app_forum_post_report_resolve', {'id': reportData.reports[0].id}) }}" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('resolve_report' ~ reportData.reports[0].id) }}">
+                                                    <button class="btn btn-sm btn-success mb-1 w-100" title="Mark as resolved">
+                                                        <i class="bi bi-check-circle me-1"></i>Resolve
+                                                    </button>
+                                                </form>
+                                                <form method="post" action="{{ path('app_forum_post_report_dismiss', {'id': reportData.reports[0].id}) }}" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('dismiss_report' ~ reportData.reports[0].id) }}">
+                                                    <button class="btn btn-sm btn-secondary w-100" title="Dismiss report">
+                                                        <i class="bi bi-x-circle me-1"></i>Dismiss
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                {# Search Form #}
+                <div class="np-card mb-4">
+                    <div class="np-card__body">
+                        <form method="get" class="row g-3">
+                            <div class="col-md-8">
+                                <input type="text" name="search" class="form-control" placeholder="Search post title or content..." value="{{ app.request.query.get('search') }}">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100">Search</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <h2 class="np-section-title mb-3">Forum posts list</h2>
+                <div class="np-card p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="px-4 py-3" style="width: 80px;">
+                                        <a href="{{ path('app_forum_post_back', {'sort': 'id', 'direction': sort == 'id' and direction == 'ASC' ? 'DESC' : 'ASC', 'search': app.request.query.get('search')}) }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                                            <span>#</span>
+                                            {% if sort == 'id' %}<i class="bi bi-caret-{{ direction == 'ASC' ? 'up' : 'down' }}-fill"></i>{% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="px-4 py-3">
+                                        <a href="{{ path('app_forum_post_back', {'sort': 'title', 'direction': sort == 'title' and direction == 'ASC' ? 'DESC' : 'ASC', 'search': app.request.query.get('search')}) }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                                            <span>Title</span>
+                                            {% if sort == 'title' %}<i class="bi bi-caret-{{ direction == 'ASC' ? 'up' : 'down' }}-fill"></i>{% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="px-4 py-3">Author</th>
+                                    <th class="px-4 py-3 text-center">
+                                        <i class="bi bi-chat-dots"></i>
+                                    </th>
+                                    <th class="px-4 py-3">
+                                        <a href="{{ path('app_forum_post_back', {'sort': 'createdAt', 'direction': sort == 'createdAt' and direction == 'ASC' ? 'DESC' : 'ASC', 'search': app.request.query.get('search')}) }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                                            <span>Created</span>
+                                            {% if sort == 'createdAt' %}<i class="bi bi-caret-{{ direction == 'ASC' ? 'up' : 'down' }}-fill"></i>{% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="px-4 py-3 text-end" style="width: 150px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for post in pagination %}
+                                {% set isReported = false %}
+                                {% set reportCount = 0 %}
+                                {% if reportedPosts is defined %}
+                                    {% for postId, reportData in reportedPosts %}
+                                        {% if postId == post.id %}
+                                            {% set isReported = true %}
+                                            {% set reportCount = reportData.report_count %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                                
+                                <tr class="align-middle {% if isReported %}table-danger{% endif %}">
+                                    <td class="px-4 fw-semibold text-muted">
+                                        {{ post.id }}
+                                        {% if isReported %}
+                                            <i class="bi bi-exclamation-triangle-fill text-danger ms-1" title="{{ reportCount }} report(s)"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-chat-square-text text-primary"></i>
+                                            <span class="fw-medium">{{ post.title|slice(0, 40) }}{% if post.title|length > 40 %}...{% endif %}</span>
+                                            {% if isReported %}
+                                                <span class="badge bg-danger">{{ reportCount }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="px-4">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="np-avatar-sm" style="width: 28px; height: 28px; background: linear-gradient(135deg, #ec4899, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.65rem; font-weight: 600;">
+                                                {{ post.author.username|slice(0, 2)|upper }}
+                                            </div>
+                                            <span class="text-muted">{{ post.author.username }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 text-center">
+                                        <span class="badge bg-info">{{ post.reponses|length }}</span>
+                                    </td>
+                                    <td class="px-4 text-muted">{{ post.createdAt|date('M d, Y') }}</td>
+                                    <td class="px-4 text-end">
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <a href="{{ path('app_forum_post_back', {'id': post.id}) }}" class="btn btn-sm btn-primary d-flex align-items-center gap-1" title="Edit"><i class="bi bi-pencil-square"></i><span>Edit</span></a>
+                                            <form method="post" action="{{ path('app_forum_post_delete', {'id': post.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this forum post?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ post.id) }}">
+                                                <button class="btn btn-sm btn-danger d-flex align-items-center gap-1" title="Delete"><i class="bi bi-trash"></i><span>Delete</span></button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <i class="bi bi-chat-square display-4 mb-3 d-block"></i>
+                                        <p class="mb-0">No forum posts found matching your criteria.</p>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {# Pagination #}
+                    <div class="d-flex justify-content-center mt-3">
+                        {{ knp_pagination_render(pagination, null, {}, {'sortable': false}) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed position-relative">
+                    <h2 class="np-section-title">
+                        {% if editing %}
+                            Edit post #{{ currentForumPost.id }}
+                        {% else %}
+                            Create new forum post
+                        {% endif %}
+                    </h2>
+
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        <div class="mb-3">
+                            {{ form_label(form.title, 'Title', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.title, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.title) }}
+                        </div>
+                        
+                        {% if form.author is defined %}
+                        <div class="mb-3">
+                            {{ form_label(form.author, 'Author', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.author, {'attr': {'class': 'form-select', 'id': 'forum-author-select'}}) }}
+                            {{ form_errors(form.author) }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.content, 'Content', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.content, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.content) }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.imageFile, 'Image', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.imageFile, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.imageFile) }}
+                        </div>
+                        
+                        <button class="btn btn-success">{% if editing %}Update{% else %}Save{% endif %}</button>
+                    {{ form_end(form) }}
+                </div>
+
+                {% if editing %}
+                <div class="np-form-card np-animate-in-delayed mt-4">
+                    <h3 class="np-section-title" style="font-size: 1.2rem;">Comments ({{ currentForumPost.reponses|length }})</h3>
+                    
+                    {# Add Comment Form #}
+                    <div class="mb-3 position-relative" style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 15px;">
+                        <form method="post" action="{{ path('app_reponse_add', {'id': currentForumPost.id}) }}">
+                            <div class="mb-2">
+                                <textarea name="content" class="form-control" rows="3" placeholder="Add a comment..." required></textarea>
+                            </div>
+                            <button class="btn btn-sm btn-success">➕ Add Comment</button>
+                        </form>
+                        <!-- Autocomplete suggestions container for back office -->
+                        <div id="back-comment-suggestions" class="list-group" style="position: fixed; display: none; background: #1e293b; border: 1px solid #4a5568; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-radius: 6px; max-height: 200px; overflow-y: auto;"></div>
+                    </div>
+                    
+                    {% if currentForumPost.reponses|length > 0 %}
+                    <div class="comments-list" style="max-height: 400px; overflow-y: auto;">
+                        {% for reponse in currentForumPost.reponses %}
+                        <div class="comment-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 5px;">
+                                {{ reponse.author.username }} • {{ reponse.createdAt|date('M d, Y H:i') }}
+                            </div>
+                            <div style="font-size: 0.9rem; margin-bottom: 8px;">
+                                {{ reponse.content|slice(0, 100) }}{% if reponse.content|length > 100 %}...{% endif %}
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editCommentModal{{ reponse.id }}">
+                                    Edit
+                                </button>
+                                <form method="post" action="{{ path('app_reponse_delete', {'id': reponse.id}) }}" style="display:inline" 
+                                      onsubmit="return confirm('Delete this comment?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reponse.id) }}">
+                                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        {# Edit Modal #}
+                        <div class="modal fade" id="editCommentModal{{ reponse.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content bg-dark text-light">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Comment</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form method="post" action="{{ path('app_reponse_edit', {'id': reponse.id}) }}">
+                                        <div class="modal-body position-relative">
+                                            <textarea name="content" class="form-control" style="background: #1e293b; color: #f8fafc; border: 1px solid rgba(255,255,255,0.2);" rows="4">{{ reponse.content }}</textarea>
+                                            <!-- Autocomplete suggestions container for edit modal -->
+                                            <div id="edit-comment-suggestions-{{ reponse.id }}" class="list-group" style="position: fixed; display: none; background: #1e293b; border: 1px solid #4a5568; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-radius: 6px; max-height: 200px; overflow-y: auto;"></div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-color: rgba(255,255,255,0.2); color: #94a3b8;">Cancel</button>
+                                            <button type="submit" class="btn btn-primary" style="background: #3b82f6; border: none;">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <script>
+        console.log('Autocomplete script starting...');
+        // Autocomplete for back office comment textarea
+        (function initBackOfficeAutocomplete() {
+            // Common English words for instant suggestions
+            const commonWords = [
+                'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'I',
+                'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
+                'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she',
+                'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their',
+                'what', 'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go',
+                'me', 'when', 'make', 'can', 'like', 'time', 'no', 'just', 'him', 'know',
+                'take', 'people', 'into', 'year', 'your', 'good', 'some', 'could', 'them',
+                'see', 'other', 'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over',
+                'think', 'also', 'back', 'after', 'use', 'two', 'how', 'our', 'work',
+                'first', 'well', 'way', 'even', 'new', 'want', 'because', 'any', 'these',
+                'give', 'day', 'most', 'us', 'is', 'was', 'are', 'been', 'has', 'had',
+                'were', 'said', 'did', 'having', 'may', 'am'
+            ];
+
+            // Setup autocomplete for a specific textarea and suggestions container
+            function setupAutocomplete(textarea, suggestionsContainer) {
+                if (!textarea || !suggestionsContainer) {
+                    console.log('Missing textarea or suggestions container');
+                    return;
+                }
+                console.log('Setting up autocomplete for:', textarea, suggestionsContainer);
+
+                let currentSuggestions = [];
+                let selectedIndex = -1;
+
+                textarea.addEventListener('input', function() {
+                    const text = this.value;
+                    const words = text.split(/\s+/);
+                    const currentWord = words[words.length - 1];
+                    console.log('Input detected. Current word:', currentWord);
+                    
+                    // Simple debug - show alert when typing
+                    if (currentWord.length >= 2) {
+                        console.log('Word length >= 2, checking for suggestions...');
+                    }
+
+                    if (currentWord.length < 2) {
+                        suggestionsContainer.style.display = 'none';
+                        return;
+                    }
+
+                    // Show matching common words instantly
+                    const matches = commonWords.filter(word => 
+                        word.toLowerCase().startsWith(currentWord.toLowerCase())
+                    ).slice(0, 5);
+                    console.log('Found matches:', matches);
+
+                    if (matches.length > 0) {
+                        showSuggestions(matches, currentWord);
+                    } else {
+                        // Try free dictionary API for more suggestions
+                        fetch(`https://api.datamuse.com/sug?s=${encodeURIComponent(currentWord)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                const apiSuggestions = data.slice(0, 5).map(item => item.word);
+                                console.log('API suggestions:', apiSuggestions);
+                                if (apiSuggestions.length > 0) {
+                                    showSuggestions(apiSuggestions, currentWord);
+                                } else {
+                                    suggestionsContainer.style.display = 'none';
+                                }
+                            })
+                            .catch(() => {
+                                suggestionsContainer.style.display = 'none';
+                            });
+                    }
+                });
+
+                function showSuggestions(suggestions, currentWord) {
+                    console.log('showSuggestions called with:', suggestions);
+                    currentSuggestions = suggestions;
+                    selectedIndex = -1;
+                    suggestionsContainer.innerHTML = '';
+                    
+                    // Container is already positioned correctly by wrapper
+                    suggestions.forEach((word, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'list-group-item list-group-item-action';
+                        item.style.cursor = 'pointer';
+                        item.style.fontSize = '0.9rem';
+                        item.style.padding = '10px 15px';
+                        item.style.border = 'none';
+                        item.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+                        item.style.color = '#f8fafc';
+                        item.style.backgroundColor = '#1e293b';
+                        item.style.transition = 'background-color 0.2s';
+                        item.textContent = word;
+                        item.addEventListener('click', () => selectSuggestion(word, currentWord));
+                        item.addEventListener('mouseenter', () => {
+                            item.style.backgroundColor = '#374151';
+                        });
+                        item.addEventListener('mouseleave', () => {
+                            if (selectedIndex !== index) {
+                                item.style.backgroundColor = '#1e293b';
+                            }
+                        });
+                        suggestionsContainer.appendChild(item);
+                    });
+                    
+                    console.log('Showing suggestions with count:', suggestions.length);
+                    suggestionsContainer.style.display = 'block';
+                }
+
+                function selectSuggestion(word, currentWord) {
+                    const text = textarea.value;
+                    const words = text.split(/\s+/);
+                    words[words.length - 1] = word;
+                    textarea.value = words.join(' ');
+                    suggestionsContainer.style.display = 'none';
+                    textarea.focus();
+                }
+
+                // Keyboard navigation
+                textarea.addEventListener('keydown', function(e) {
+                    if (suggestionsContainer.style.display === 'none') return;
+                    
+                    const items = suggestionsContainer.querySelectorAll('.list-group-item');
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                        updateSelection(items);
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        selectedIndex = Math.max(selectedIndex - 1, -1);
+                        updateSelection(items);
+                    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                        e.preventDefault();
+                        const currentWord = this.value.split(/\s+/).pop();
+                        selectSuggestion(currentSuggestions[selectedIndex], currentWord);
+                    } else if (e.key === 'Escape') {
+                        suggestionsContainer.style.display = 'none';
+                    }
+                });
+
+                function updateSelection(items) {
+                    items.forEach((item, index) => {
+                        if (index === selectedIndex) {
+                            item.style.backgroundColor = '#3b82f6';
+                            item.style.color = 'white';
+                        } else {
+                            item.style.backgroundColor = '#1e293b';
+                            item.style.color = '#f8fafc';
+                        }
+                    });
+                }
+
+                // Hide suggestions when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!textarea.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                        suggestionsContainer.style.display = 'none';
+                    }
+                });
+            }
+
+            // Setup autocomplete for the main comment textarea
+            const mainTextarea = document.querySelector('textarea[name="content"]');
+            const mainSuggestions = document.getElementById('back-comment-suggestions');
+            console.log('Back office textarea found:', mainTextarea);
+            console.log('Back office suggestions container found:', mainSuggestions);
+            setupAutocomplete(mainTextarea, mainSuggestions);
+
+            // Setup autocomplete for the main forum post form (title and content)
+            // Setup for title input
+            const titleInput = document.querySelector('input[name="title"]');
+            if (titleInput) {
+                console.log('Setting up autocomplete for forum post title');
+                const titleSuggestions = document.createElement('div');
+                titleSuggestions.id = 'title-suggestions';
+                titleSuggestions.className = 'list-group';
+                titleSuggestions.style.cssText = 'position: absolute; display: none; background: #1e293b; border: 1px solid #4a5568; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 9999;';
+                titleInput.parentNode.appendChild(titleSuggestions);
+                setupAutocomplete(titleInput, titleSuggestions);
+            }
+            // Setup for content textarea in the main form
+            const mainFormTextarea = document.querySelector('textarea[name="content"]');
+            if (mainFormTextarea) {
+                console.log('Setting up autocomplete for forum post content');
+                
+                // Wrap textarea in a container for positioning
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'relative';
+                wrapper.style.display = 'inline-block';
+                wrapper.style.width = '100%';
+                
+                // Move textarea into wrapper
+                mainFormTextarea.parentNode.insertBefore(wrapper, mainFormTextarea);
+                wrapper.appendChild(mainFormTextarea);
+                
+                // Create suggestions container inside wrapper
+                const contentSuggestions = document.createElement('div');
+                contentSuggestions.id = 'content-suggestions';
+                contentSuggestions.className = 'list-group';
+                contentSuggestions.style.cssText = 'position: absolute; display: none; background: #1e293b; border: 1px solid #4a5568; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-radius: 6px; max-height: 200px; overflow-y: auto; z-index: 9999; top: 100%; left: 0; right: 0; margin-top: 5px;';
+                wrapper.appendChild(contentSuggestions);
+                
+                setupAutocomplete(mainFormTextarea, contentSuggestions);
+            }
+
+            // Setup autocomplete for edit modals when they are shown
+            document.querySelectorAll('[id^="editCommentModal"]').forEach(modal => {
+                modal.addEventListener('shown.bs.modal', function() {
+                    const textarea = this.querySelector('textarea[name="content"]');
+                    const suggestionsId = 'edit-comment-suggestions-' + this.id.replace('editCommentModal', '');
+                    const suggestionsContainer = document.getElementById(suggestionsId);
+                    setupAutocomplete(textarea, suggestionsContainer);
+                });
+            });
+
+            // Initialize author select with suggestions
+            const authorSelect = document.getElementById('forum-author-select');
+            if (authorSelect) {
+                // If jQuery and select2 are available, enhance the select
+                if (typeof $ !== 'undefined' && $.fn.select2) {
+                    $(authorSelect).select2({
+                        placeholder: 'Search for a user...',
+                        allowClear: true,
+                        width: '100%'
+                    });
+                } else {
+                    // Fallback: add basic autocomplete functionality
+                    authorSelect.style.width = '100%';
+                    
+                    // Add search functionality
+                    const options = authorSelect.options;
+                    const originalLength = options.length;
+                    
+                    authorSelect.addEventListener('input', function() {
+                        const searchTerm = this.value.toLowerCase();
+                        
+                        // Clear existing options except the first one (placeholder)
+                        while (options.length > 1) {
+                            authorSelect.remove(1);
+                        }
+                        
+                        // Add matching options
+                        for (let i = 1; i < originalLength; i++) {
+                            const option = options[i];
+                            if (option.text.toLowerCase().includes(searchTerm)) {
+                                const newOption = document.createElement('option');
+                                newOption.value = option.value;
+                                newOption.text = option.text;
+                                authorSelect.add(newOption);
+                            }
+                        }
+                    });
+                }
+            }
+        })();
+    </script>
+{% endblock %}
+

@@ -1,0 +1,105 @@
+{% extends 'leaderboard/index.html.twig' %}
+
+{% block title %}Global Rankings - {{ game.name }}{% endblock %}
+
+{% block leaderboard_content %}
+<div class="np-card np-card--stats">
+    <div class="np-card__header" style="background: linear-gradient(135deg, rgba(99,102,241,0.1), transparent);">
+        <h2 class="np-card__title">Global Rankings - {{ game.name }}</h2>
+    </div>
+
+    <div class="table-responsive">
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Rank</th>
+                    <th>Player</th>
+                    <th style="width: 150px;">Tier</th>
+                    <th style="width: 120px;">Score</th>
+                    <th style="width: 100px;">Win Rate</th>
+                    <th style="width: 100px;">Matches</th>
+                    <th style="width: 100px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in rankings %}
+                    <tr>
+                        <td>
+                            <span class="rank-badge {{ entry.rank <= 3 ? 'rank-' ~ entry.rank : 'rank-other' }}">
+                                {{ entry.rank }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="player-cell">
+                                {% if entry.player.profilePicture %}
+                                    <img src="{{ asset('uploads/' ~ entry.player.profilePicture) }}" alt="{{ entry.player.nickname }}" class="np-avatar np-avatar--sm">
+                                {% else %}
+                                    <div class="np-avatar np-avatar--sm">{{ entry.player.nickname|first|upper }}</div>
+                                {% endif %}
+                                <div class="player-info">
+                                    <h4>{{ entry.player.nickname }}</h4>
+                                    <span>{{ entry.player.game.name }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="tier-badge tier-badge--{{ entry.tier|lower }}">{{ entry.tier }}</span>
+                        </td>
+                        <td>
+                            <span class="elo-display">{{ entry.eloRating }}</span>
+                        </td>
+                        <td>
+                            <span class="{% if entry.winRate >= 60 %}text-success{% elseif entry.winRate >= 50 %}text-warning{% else %}text-danger{% endif %} font-weight-semibold">
+                                {{ entry.winRate }}%
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-muted">{{ entry.matches }}</span>
+                        </td>
+                        <td>
+                            <a href="{{ path('app_analytics_player', {'playerId': entry.player.id}) }}" class="btn btn-sm btn-secondary">View</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="np-empty-state py-4">
+                                <div class="np-empty-state__icon">📊</div>
+                                <div class="np-empty-state__title">No Statistics Available</div>
+                                <p>Player stats will appear once matches are recorded.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# Stats Summary #}
+<div class="row mt-4">
+    <div class="col-md-4 mb-3">
+        <div class="np-stat-card np-stat-card--white">
+            <div class="np-stat-card__label">Total Players</div>
+            <div class="np-stat-card__value">{{ rankings|length }}</div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="np-stat-card np-stat-card--cyan">
+            <div class="np-stat-card__label">Highest Score</div>
+            <div class="np-stat-card__value">{{ rankings|first ? rankings|first.eloRating : 'N/A' }}</div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="np-stat-card np-stat-card--purple">
+            <div class="np-stat-card__label">Avg Win Rate</div>
+            <div class="np-stat-card__value">
+                {% set totalWR = 0 %}
+                {% for entry in rankings %}{% set totalWR = totalWR + entry.winRate %}{% endfor %}
+                {{ rankings|length > 0 ? (totalWR / rankings|length)|round(1) : 'N/A' }}%
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

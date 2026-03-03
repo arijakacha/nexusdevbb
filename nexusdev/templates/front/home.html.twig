@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}NexusPlay • Esport analytics platform{% endblock %}
+
+{% block body %}
+    <section class="np-hero">
+        <div class="np-hero-text">
+            <p class="np-hero-text-eyebrow">Esport all-in-one platform</p>
+            <h1 class="np-hero-title">
+                NEXUS<span>PLAY</span> centralizes
+                <br>players, teams & organizations.
+            </h1>
+            <p class="np-hero-lead">
+                Track your players, manage teams, share coaching content, grow your community and
+                monetize with virtual currencies — all on a single competitive hub.
+            </p>
+
+            <div class="np-hero-actions">
+                <a href="{{ path('front_player_index') }}" class="btn btn-primary">Try it for free</a>
+                <div class="np-badge-stat">
+                    <span class="np-badge-stat-value">+200,000</span>
+                    <span>matches analyzed in 5 days</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="np-hero-media">
+            <div class="np-hero-map-card">
+                <div class="np-hero-map-header">
+                    <span>Live tactical map</span>
+                    <span class="np-pill"><span class="np-text-accent">●</span> Ranked</span>
+                </div>
+                <div class="np-hero-map-mini">
+                    <div class="np-hero-map-node np-hero-map-node--a"></div>
+                    <div class="np-hero-map-node np-hero-map-node--b"></div>
+                    <div class="np-hero-map-node np-hero-map-node--c"></div>
+                    <div class="np-hero-map-node np-hero-map-node--d"></div>
+                </div>
+                <div class="np-hero-map-footer">
+                    <span>Mirage • 25:18</span>
+                    <span>Win rate boost: <strong class="np-text-accent">+14%</strong></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="np-partners-row">
+        <span class="np-partners-label">Trusted by competitive communities</span>
+        <div class="np-partners-logos">
+            <span>LoL</span>
+            <span>CS</span>
+            <span>Dota</span>
+            <span>Valorant</span>
+            <span>FIFA</span>
+        </div>
+    </div>
+
+    <section class="np-section" id="features">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Win more</span>
+            <h2 class="np-section-title">Use our statistics & analytics to make the right calls.</h2>
+            <p class="np-section-subtitle">Instant access to your ecosystem from a single dashboard.</p>
+        </div>
+
+        <div class="np-card-grid">
+            <a href="{{ path('front_player_index') }}" class="np-card">
+                <div class="np-card-label">Players</div>
+                <div class="np-card-title">Player profiles</div>
+                <div class="np-card-meta">Track gamer tags, main games and performance stats.</div>
+            </a>
+            <a href="{{ path('front_team_index') }}" class="np-card">
+                <div class="np-card-label">Teams</div>
+                <div class="np-card-title">Team management</div>
+                <div class="np-card-meta">Manage rosters, organizations and line-ups.</div>
+            </a>
+            <a href="{{ path('front_content_index') }}" class="np-card">
+                <div class="np-card-label">Content</div>
+                <div class="np-card-title">Coaching & guides</div>
+                <div class="np-card-meta">Publish coaching content and community news.</div>
+            </a>
+            <a href="{{ path('front_forum_post_index') }}" class="np-card">
+                <div class="np-card-label">Community</div>
+                <div class="np-card-title">Forum & comments</div>
+                <div class="np-card-meta">Keep your community active around every match.</div>
+            </a>
+            <a href="{{ path('front_product_index') }}" class="np-card">
+                <div class="np-card-label">Shop</div>
+                <div class="np-card-title">Virtual currencies</div>
+                <div class="np-card-meta">Sell products, track orders and in-game credits.</div>
+            </a>
+        </div>
+    </section>
+{% endblock %}
+

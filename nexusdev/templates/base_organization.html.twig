@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}Organization • NexusPlay{% endblock %}</title>
+        <link rel="stylesheet" href="{{ asset('css/nexusplay.css') }}">
+        {% block stylesheets %}{% endblock %}
+
+        <script>
+            window.CKEDITOR_BASEPATH = '{{ asset('ckeditor/') }}';
+        </script>
+        <script src="{{ asset('ckeditor/ckeditor.js') }}"></script>
+    </head>
+    <body>
+        <div class="np-page">
+            <header class="np-header">
+                <div class="np-header-inner">
+                    <div class="np-logo">
+                        <a href="{{ path('app_organization_back') }}">NEXUS<span>PLAY</span></a>
+                    </div>
+                    <nav class="np-nav">
+                        <a href="{{ path('app_organization_back', {'view': 'dashboard'}) }}">DASHBOARD</a>
+                        <a href="{{ path('app_organization_back', {'view': 'teams'}) }}">TEAMS</a>
+                        <a href="{{ path('app_organization_back', {'view': 'players'}) }}">PLAYERS</a>
+                        <a href="{{ path('app_organization_back', {'view': 'shop'}) }}">SHOP</a>
+                        <a href="{{ path('front_content_index') }}">GUIDES</a>
+                        <a href="{{ path('front_forum_post_index') }}">FORUM</a>
+                        <a href="{{ path('front_organization_index') }}">ORGANIZATIONS</a>
+                        
+                        <!-- Analytics Dropdown -->
+                        <div class="np-nav__item">
+                            <a href="#" onclick="return false;" style="display: flex; align-items: center; cursor: pointer;">
+                                ANALYTICS
+                                <span class="np-nav__chevron">▼</span>
+                            </a>
+                            <div class="np-nav__dropdown">
+                                <a href="{{ path('app_organization_back', {'view': 'analytics'}) }}" class="np-nav__dropdown-link">
+                                    <span class="np-nav__dropdown-icon">📈</span>
+                                    <span>Global Analytics</span>
+                                </a>
+                                <a href="{{ path('app_organization_back', {'view': 'leaderboards'}) }}" class="np-nav__dropdown-link">
+                                    <span class="np-nav__dropdown-icon">🏆</span>
+                                    <span>Leaderboards</span>
+                                </a>
+                            </div>
+                        </div>
+                    </nav>
+                    <div class="np-header-actions">
+                        {% if app.user %}
+                            {% if is_granted('ROLE_ORGANIZATION') %}
+                                {% set unreadCount = app.user.notifications|filter(n => not n.isRead)|length %}
+                                <div style="position: relative; cursor: pointer; margin-right: 14px;" onclick="toggleOrgNotifDropdown()">
+                                    <span style="font-size: 1.3rem;">🔔</span>
+                                    {% if unreadCount > 0 %}
+                                        <span style="position: absolute; top: -6px; right: -8px; background: #ef4444; color: white; border-radius: 999px; padding: 2px 6px; font-size: 0.7rem; font-weight: 700; line-height: 1;">{{ unreadCount }}</span>
+                                    {% endif %}
+                                </div>
+                                <div id="orgNotifDropdown" style="display: none; position: absolute; top: 60px; right: 24px; width: 320px; background: #0b1220; border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 12px; box-shadow: 0 14px 50px rgba(0,0,0,0.55); z-index: 2000; overflow: hidden;">
+                                    <div style="padding: 12px 14px; border-bottom: 1px solid rgba(148, 163, 184, 0.18); display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="color: #f9fafb; font-weight: 700;">Notifications</span>
+                                        {% if unreadCount > 0 %}
+                                            <span style="background: #ef4444; color: white; border-radius: 999px; padding: 2px 8px; font-size: 0.72rem; font-weight: 700;">{{ unreadCount }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div style="max-height: 320px; overflow-y: auto;">
+                                        {% set recentNotifications = app.user.notifications|slice(0, 5) %}
+                                        {% if recentNotifications|length > 0 %}
+                                            {% for notification in recentNotifications %}
+                                                <div style="padding: 10px 14px; border-bottom: 1px solid rgba(148, 163, 184, 0.10); {% if not notification.isRead %}background: rgba(59, 130, 246, 0.10);{% endif %}">
+                                                    <div style="font-size: 0.85rem; color: #e5e7eb; line-height: 1.35;">{{ notification.message|raw }}</div>
+                                                    <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 4px;">{{ notification.createdAt|date('M d, H:i') }}</div>
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div style="padding: 18px; text-align: center; color: #94a3b8; font-size: 0.85rem;">No notifications</div>
+                                        {% endif %}
+                                    </div>
+                                    <div style="padding: 10px 14px; border-top: 1px solid rgba(148, 163, 184, 0.18); text-align: center;">
+                                        <a href="{{ path('app_organization_back', {'view': 'notifications'}) }}" style="color: #60a5fa; text-decoration: none; font-size: 0.85rem; font-weight: 600;">View All</a>
+                                    </div>
+                                </div>
+                                <script>
+                                    function toggleOrgNotifDropdown() {
+                                        var dropdown = document.getElementById('orgNotifDropdown');
+                                        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+                                    }
+                                    document.addEventListener('click', function(event) {
+                                        var dropdown = document.getElementById('orgNotifDropdown');
+                                        var bell = event.target.closest('[onclick="toggleOrgNotifDropdown()"]');
+                                        if (!bell && dropdown && dropdown.style.display === 'block') {
+                                            dropdown.style.display = 'none';
+                                        }
+                                    });
+                                </script>
+                            {% endif %}
+                            {% if organization is defined and organization.id %}
+                                <a href="{{ path('app_organization_back', {'view': 'profile'}) }}" class="np-header-user" style="color: #e5e7eb; font-size: 0.9rem; text-decoration: none;">{{ organization.name }}</a>
+                            {% else %}
+                                <span class="np-header-user" style="color: #e5e7eb; font-size: 0.9rem;">{{ app.user.username }}</span>
+                            {% endif %}
+                            <a href="{{ path('app_logout') }}" class="np-link-muted">LOG OUT</a>
+                        {% else %}
+                            <a href="{{ path('app_login') }}" class="np-link-muted">LOG IN</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+
+            <main class="np-main">
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="np-flash np-flash-{{ label }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+
+                {% block body %}{% endblock %}
+            </main>
+
+            <footer class="np-footer">
+                <div class="np-footer-inner">
+                    <span>© {{ "now"|date("Y") }} NexusPlay. All rights reserved.</span>
+                    <span>Organization dashboard • Teams • Players • Shop</span>
+                </div>
+            </footer>
+        </div>
+
+        {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {% endblock %}
+    </body>
+</html>
+

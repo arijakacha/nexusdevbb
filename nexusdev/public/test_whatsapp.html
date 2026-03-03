@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WhatsApp Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 WhatsApp Integration Test</h1>
+    
+    <div class="test-section info">
+        <h3>📋 Test Instructions</h3>
+        <p>1. Enter a phone number (with country code: +1234567890)</p>
+        <p>2. Click "Test WhatsApp" to send a test message</p>
+        <p>3. Check the results below for detailed information</p>
+    </div>
+
+    <div class="test-section">
+        <h3>📱 WhatsApp Test</h3>
+        <input type="tel" id="phone" placeholder="+1234567890" value="+1234567890">
+        <button onclick="testWhatsApp()">🚀 Test WhatsApp</button>
+        <button onclick="testService()">🔧 Test Service</button>
+        <button onclick="clearResults()">🗑️ Clear Results</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        let sessionId = '1'; // You can change this to a real session ID
+        
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-section ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        async function testWhatsApp() {
+            const phone = document.getElementById('phone').value.trim();
+            
+            if (!phone) {
+                log('❌ Please enter a phone number', 'error');
+                return;
+            }
+
+            log('🚀 Starting WhatsApp test...', 'info');
+            log(`📞 Phone: ${phone}`, 'info');
+
+            try {
+                const response = await fetch(`/session/${sessionId}/send-whatsapp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: `phone_number=${encodeURIComponent(phone)}`
+                });
+
+                log(`📡 Response Status: ${response.status}`, 'info');
+
+                const data = await response.json();
+                log(`📋 Response Data: ${JSON.stringify(data, null, 2)}`, response.success ? 'success' : 'error');
+
+                if (data.success) {
+                    log('✅ WhatsApp test successful!', 'success');
+                } else {
+                    log(`❌ WhatsApp test failed: ${data.error}`, 'error');
+                }
+
+            } catch (error) {
+                log(`💥 Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testService() {
+            log('🔧 Testing WhatsApp service...', 'info');
+
+            try {
+                const response = await fetch(`/session/${sessionId}/whatsapp-test`);
+                const data = await response.json();
+                
+                log(`📋 Service Test Result: ${JSON.stringify(data, null, 2)}`, 'info');
+
+                if (data.test_result && data.test_result.success) {
+                    log('✅ Service test successful!', 'success');
+                } else {
+                    log('❌ Service test failed', 'error');
+                }
+
+            } catch (error) {
+                log(`💥 Service Test Error: ${error.message}`, 'error');
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Auto-test on page load
+        window.onload = function() {
+            log('🌐 WhatsApp Test Page Loaded', 'info');
+            log('📍 Session ID: ' + sessionId, 'info');
+            log('🌍 Current URL: ' + window.location.href, 'info');
+        };
+    </script>
+</body>
+</html>

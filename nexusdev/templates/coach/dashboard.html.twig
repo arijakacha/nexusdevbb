@@ -1,0 +1,283 @@
+{% extends 'base_coach.html.twig' %}
+
+{% block title %}Coach Dashboard{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .calendar-container {
+            max-width: 100%;
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .calendar-day-header {
+            background: #1a1a2e;
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+        .calendar-day {
+            background: #0f172a;
+            min-height: 80px;
+            padding: 8px;
+            position: relative;
+        }
+        .calendar-day:hover {
+            background: #1e293b;
+        }
+        .calendar-day-number {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .calendar-day.today .calendar-day-number {
+            color: #3b82f6;
+        }
+        .calendar-session {
+            background: #3b82f6;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .calendar-session.completed {
+            background: #10b981;
+        }
+        .calendar-session.cancelled {
+            background: #ef4444;
+        }
+        .calendar-session.pending {
+            background: #f59e0b;
+        }
+        .empty-day {
+            background: #0a0f1a;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Coaching Dashboard</h1>
+            <p class="np-section-subtitle">Your daily schedule, analytics, and meeting creation.</p>
+        </div>
+
+        {# Analytics Cards #}
+        {% if analytics is defined %}
+            <div class="row mb-4">
+                <div class="col-md-4 col-sm-6 mb-3">
+                    <div class="np-stat-card np-stat-card--primary">
+                        <div class="np-stat-card__label">Total Sessions</div>
+                        <div class="np-stat-card__value">{{ analytics.totalSessions }}</div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-3">
+                    <div class="np-stat-card np-stat-card--green">
+                        <div class="np-stat-card__label">Completed</div>
+                        <div class="np-stat-card__value">{{ analytics.completedSessions }}</div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-3">
+                    <div class="np-stat-card np-stat-card--amber">
+                        <div class="np-stat-card__label">Upcoming</div>
+                        <div class="np-stat-card__value">{{ analytics.upcomingSessions }}</div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-3">
+                    <div class="np-stat-card np-stat-card--purple">
+                        <div class="np-stat-card__label">Players Coached</div>
+                        <div class="np-stat-card__value">{{ analytics.uniquePlayersCount }}</div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-6 mb-3">
+                    <div class="np-stat-card np-stat-card--red">
+                        <div class="np-stat-card__label">Earnings</div>
+                        <div class="np-stat-card__value">${{ analytics.estimatedEarnings|number_format(0) }}</div>
+                    </div>
+                </div>
+                {% if analytics.rating %}
+                <div class="col-md-4 col-sm-6 mb-3">
+                    <div class="np-stat-card np-stat-card--cyan">
+                        <div class="np-stat-card__label">Rating</div>
+                        <div class="np-stat-card__value">{{ analytics.rating }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if calendarData is defined %}
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                <div class="np-form-card np-animate-in-delayed mb-4">
+                    <div class="calendar-header">
+                        <h2 class="np-section-title">{{ calendarData.monthName }} {{ calendarData.year }}</h2>
+                        <div class="calendar-nav">
+                            <a href="{{ path('app_coach_back', {'year': calendarData.year, 'month': calendarData.month - 1 < 1 ? 12 : calendarData.month - 1}) }}" 
+                               class="btn btn-outline-secondary btn-sm">← Previous</a>
+                            <a href="{{ path('app_coach_back', {'year': "now"|date('Y'), 'month': "now"|date('m')}) }}" 
+                               class="btn btn-outline-primary btn-sm">Today</a>
+                            <a href="{{ path('app_coach_back', {'year': calendarData.year, 'month': calendarData.month + 1 > 12 ? 1 : calendarData.month + 1}) }}" 
+                               class="btn btn-outline-secondary btn-sm">Next →</a>
+                        </div>
+                    </div>
+
+                    <div class="calendar-container">
+                        <div class="calendar-grid">
+                            <div class="calendar-day-header">Sun</div>
+                            <div class="calendar-day-header">Mon</div>
+                            <div class="calendar-day-header">Tue</div>
+                            <div class="calendar-day-header">Wed</div>
+                            <div class="calendar-day-header">Thu</div>
+                            <div class="calendar-day-header">Fri</div>
+                            <div class="calendar-day-header">Sat</div>
+
+                            {% for i in range(1, calendarData.startDayOfWeek) %}
+                                <div class="calendar-day empty-day"></div>
+                            {% endfor %}
+
+                            {% for day in range(1, calendarData.daysInMonth) %}
+                                {% set currentDate = "%04d-%02d-%02d"|format(calendarData.year, calendarData.month, day) %}
+                                {% set isToday = ("now"|date('Y-m-d') == currentDate) %}
+                                
+                                <div class="calendar-day {{ isToday ? 'today' : '' }}">
+                                    <div class="calendar-day-number">{{ day }}</div>
+                                    {% for session in calendarData.sessions %}
+                                        {% set sessionDate = session.scheduledAt|date('Y-m-d') %}
+                                        {% if sessionDate == currentDate %}
+                                            <a href="{{ path('app_coach_session_detail', {'id': session.id}) }}" class="text-decoration-none">
+                                                <div class="calendar-session {{ session.status|lower }}">
+                                                    {{ session.scheduledAt|date('H:i') }} - {{ session.player.nickname }}
+                                                </div>
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed mb-4">
+                    <div class="d-flex justify-content-between align-items-end" style="gap: 16px;">
+                        <div>
+                            <h2 class="np-section-title">Schedule</h2>
+                            <p class="np-section-subtitle mb-0">Sessions for {{ selectedDate|date('Y-m-d') }}</p>
+                        </div>
+
+                        <form method="get" class="d-flex" style="gap: 8px; align-items: end;">
+                            <div>
+                                <label class="form-label" style="font-size: 0.8rem; opacity: 0.8;">Date</label>
+                                <input type="date" name="date" value="{{ selectedDate|date('Y-m-d') }}" class="form-control" />
+                            </div>
+                            <div>
+                                <button class="btn btn-outline-light">Go</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {% if sessions is empty %}
+                    <div class="np-card mb-4">
+                        <p class="text-muted mb-0">No sessions scheduled for this day.</p>
+                    </div>
+                {% else %}
+                    <div class="np-card-grid mb-4" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem;">
+                        {% for session in sessions %}
+                            <a href="{{ path('app_coach_session_detail', {'id': session.id}) }}" class="np-card hover-lift" style="text-decoration: none; color: inherit;">
+                                <div class="d-flex justify-content-between gap-3">
+                                    <div>
+                                        <div class="font-weight-semibold text-primary">{{ session.player.nickname }}</div>
+                                        <div class="text-muted" style="font-size: 0.85rem;">{{ session.scheduledAt|date('H:i') }} · 
+                                            <span class="np-status np-status--{{ session.status|lower }}">{{ session.status }}</span>
+                                        </div>
+                                        {% if session.notes %}
+                                            <div class="text-muted" style="font-size: 0.75rem; margin-top: 4px;">Has notes</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-muted" style="font-size: 0.8rem;">#{{ session.id }}</div>
+                                </div>
+                                {% if session.meetingUrl and session.isMeetingActive() %}
+                                    <div class="mt-2">
+                                        <div class="d-flex align-items-center gap-2 text-success" style="font-size: 0.8rem;">
+                                            <i class="bi bi-camera-video-fill"></i>
+                                            <span>Meeting Ready</span>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if players is defined and players is not empty %}
+                    <div class="np-form-card np-animate-in-delayed">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h2 class="np-section-title mb-0">All Players</h2>
+                            <span class="badge bg-secondary">{{ players|length }} total</span>
+                        </div>
+                        <div class="np-card-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                            {% for player in players %}
+                                <a href="{{ path('app_coach_player_detail', {'id': player.id}) }}" class="np-card" style="text-decoration: none; color: inherit;">
+                                    <div style="font-weight: 600; color: #3b82f6;">{{ player.nickname }}</div>
+                                    <div class="np-text-muted" style="font-size: 0.8rem;">{{ player.game.name|default('No game') }}</div>
+                                    <div class="d-flex gap-2 mt-2">
+                                        {% if player.isPro %}
+                                            <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">PRO</span>
+                                        {% endif %}
+                                        <span class="badge bg-info" style="font-size: 0.7rem;">{{ player.getRank() }}</span>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed mb-4">
+                    <h2 class="np-section-title">Create meeting</h2>
+                    {{ form_start(createSessionForm, {'attr': {'class': 'np-form'}}) }}
+                        {{ form_widget(createSessionForm) }}
+                        <button class="btn btn-success">Create</button>
+                    {{ form_end(createSessionForm) }}
+                </div>
+
+                <div class="np-card np-animate-in-delayed">
+                    <h5 class="mb-3">Quick Links</h5>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="{{ path('app_coach_calendar') }}" class="btn btn-outline-primary btn-sm">View Calendar</a>
+                        <a href="{{ path('app_coach_sessions') }}" class="btn btn-outline-primary btn-sm">Session History</a>
+                        <a href="{{ path('app_coach_profile') }}" class="btn btn-outline-primary btn-sm">Edit Profile</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+

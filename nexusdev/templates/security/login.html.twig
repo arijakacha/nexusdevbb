@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sign in{% endblock %}
+
+{% block body %}
+    <section class="np-section np-auth-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Authentication</span>
+            <h1 class="np-section-title">Sign in to NexusPlay</h1>
+            <p class="np-section-subtitle">
+                Use your email and password. Your access depends on your profile type
+                (Admin, Coach, Organization, or Player).
+            </p>
+        </div>
+
+        {% if error %}
+            <div class="alert alert-danger" role="alert">
+                {{ error.messageKey|trans(error.messageData, 'security') }}
+            </div>
+        {% endif %}
+
+        {% for message in app.flashes('info') %}
+            <div class="alert alert-info" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <form method="post" action="{{ path('app_login') }}" class="np-form">
+            <div class="mb-3">
+                <label for="inputEmail" class="form-label">Email</label>
+                <input type="email" id="inputEmail" name="_username" value="{{ last_username }}" required autofocus class="form-control">
+            </div>
+
+            <div class="mb-3">
+                <label for="inputPassword" class="form-label">Password</label>
+                <input type="password" id="inputPassword" name="_password" required class="form-control">
+            </div>
+
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+            <button class="btn btn-primary w-100" type="submit">
+                Sign in
+            </button>
+        </form>
+
+        <p class="np-form-footer">
+            <a href="{{ path('app_forgot_password_request') }}">Forgot password?</a>
+        </p>
+    </section>
+{% endblock %}
+

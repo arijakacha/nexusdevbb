@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}PRO Test Result - {{ player.nickname }}{% endblock %}
+
+{% block body %}
+<div class="container" style="max-width: 700px; margin-top: 40px; margin-bottom: 40px;">
+    <h1 class="mb-3">PRO Test Result</h1>
+    <p class="mb-3">
+        Your test score: <strong>{{ score }}</strong> / 150.
+    </p>
+
+    <div class="alert alert-warning">
+        You did not reach 100 points yet. Thats okay  we recommend working with a coach or following a coaching playlist to improve.
+    </div>
+    <div class="mb-3">
+        <a href="{{ path('front_coaching_new', {'id': player.id}) }}" class="btn btn-success">
+            Book Coaching Session
+        </a>
+        <a href="{{ path('front_content_index') }}" class="btn btn-outline-primary">
+            View Coaching Guides
+        </a>
+    </div>
+
+    <a href="{{ path('app_player_dashboard', {'id': player.id}) }}" class="btn btn-link">
+        Back to Dashboard
+    </a>
+</div>
+{% endblock %}
+

@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Comments{% endblock %}
+
+{% block body %}
+<div class="np-section">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Community</span>
+        <h1 class="np-section-title">Comments</h1>
+        <p class="np-section-subtitle">Recent comments from the community.</p>
+    </div>
+
+    <div class="np-card np-card--stats">
+        <div class="table-responsive">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Content</th>
+                        <th>Author</th>
+                        <th>Post</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for comment in comments %}
+                    <tr>
+                        <td>{{ comment.content|slice(0, 60) }}{% if comment.content|length > 60 %}...{% endif %}</td>
+                        <td class="text-muted">{{ comment.author ? comment.author.username : 'Unknown' }}</td>
+                        <td class="font-weight-semibold">{{ comment.post ? comment.post.title|slice(0, 30) : 'N/A' }}</td>
+                        <td class="text-muted">{{ comment.createdAt ? comment.createdAt|date('M d, Y') : '' }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="np-empty-state py-4">
+                                <div class="np-empty-state__icon">💬</div>
+                                <div class="np-empty-state__title">No Comments</div>
+                                <p>No comments have been posted yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

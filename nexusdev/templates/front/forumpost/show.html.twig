@@ -1,0 +1,581 @@
+{% extends is_granted('ROLE_ORGANIZATION') ? 'base_organization.html.twig' : 'base.html.twig' %}
+
+{% block title %}{{ post.title }} • Forum{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .forum-article-page {
+            padding-bottom: 60px;
+        }
+        .forum-article-layout {
+            display: grid;
+            grid-template-columns: 2.1fr 1.1fr;
+            gap: 32px;
+        }
+        .forum-hero {
+            border-radius: 12px;
+            overflow: hidden;
+            background: radial-gradient(circle at top left, #1d4ed8, #020617 55%, #020617 100%);
+            padding: 20px 22px;
+            margin-bottom: 22px;
+        }
+        .forum-hero-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .forum-hero-meta {
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+        .forum-hero-img {
+            width: 100%;
+            max-height: 260px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+        .forum-body {
+            background: #020617;
+            border-radius: 12px;
+            padding: 22px 24px;
+            border: 1px solid rgba(148,163,184,0.25);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #e5e7eb;
+            margin-bottom: 24px;
+        }
+        .forum-comments {
+            background: #020617;
+            border-radius: 12px;
+            padding: 18px 20px;
+            border: 1px solid rgba(148,163,184,0.25);
+        }
+        .forum-comment {
+            border-bottom: 1px solid rgba(31,41,55,0.7);
+            padding: 10px 0;
+        }
+        .forum-comment:last-child {
+            border-bottom: none;
+        }
+        .forum-comment-meta {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            margin-bottom: 4px;
+        }
+        .forum-comment-content {
+            font-size: 0.9rem;
+        }
+        .forum-sidebar-block {
+            background: #020617;
+            border-radius: 12px;
+            padding: 16px 18px;
+            border: 1px solid rgba(148,163,184,0.25);
+            margin-bottom: 18px;
+        }
+        .forum-sidebar-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: .18em;
+            margin-bottom: 10px;
+        }
+        .forum-sidebar-title span {
+            color: #4f46e5;
+        }
+        .forum-sidebar-item {
+            padding: 7px 0;
+            border-bottom: 1px solid rgba(31,41,55,0.7);
+        }
+        .forum-sidebar-item:last-child { border-bottom: none; }
+        .forum-sidebar-item a {
+            display: block;
+            text-decoration: none;
+            color: #e5e7eb;
+            font-size: 0.85rem;
+        }
+        .forum-sidebar-item a:hover { color: #818cf8; }
+        .forum-sidebar-date {
+            font-size: 0.7rem;
+            color: #6b7280;
+        }
+        @media (max-width: 992px) {
+            .forum-article-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in forum-article-page">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Community</span>
+            <h1 class="np-section-title">{{ post.title }}</h1>
+            <p class="np-section-subtitle">Discuss this topic with the NexusPlay community.</p>
+        </div>
+
+        <div class="forum-article-layout">
+            <div>
+                <div class="forum-hero">
+                    {% if post.image %}
+                        <img src="{{ asset(post.image) }}" alt="{{ post.title }}" class="forum-hero-img">
+                    {% endif %}
+                    <div class="forum-hero-title">{{ post.title }}</div>
+                    <div class="forum-hero-meta">
+                        {{ post.createdAt ? post.createdAt|date('M d, Y H:i') : '' }} •
+                        {{ post.author ? post.author.username : 'Unknown' }} •
+                        {{ post.reponses|length }} comments
+                    </div>
+                    
+                    {# Like/Dislike Buttons #}
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                        <div class="d-flex gap-2">
+                            {% if is_granted('ROLE_USER') %}
+                                <button class="btn btn-sm btn-outline-success like-btn" data-post-id="{{ post.id }}" data-type="like">
+                                    👍 <span class="like-count">{{ likes|default(0) }}</span>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger like-btn" data-post-id="{{ post.id }}" data-type="dislike">
+                                    👎 <span class="dislike-count">{{ dislikes|default(0) }}</span>
+                                </button>
+                            {% else %}
+                                <a href="{{ path('app_login') }}" class="btn btn-sm btn-outline-success">
+                                    👍 <span class="like-count">{{ likes|default(0) }}</span>
+                                </a>
+                                <a href="{{ path('app_login') }}" class="btn btn-sm btn-outline-danger">
+                                    👎 <span class="dislike-count">{{ dislikes|default(0) }}</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                        
+                        {# Report Button #}
+                        {% if is_granted('ROLE_USER') %}
+                            <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#reportModal">
+                                🚩 Report
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <article class="forum-body">
+                    {{ post.content|nl2br }}
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-outline-info" id="translate-btn">🌐 Translate</button>
+                        <div id="translated-content" class="mt-2 p-2" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 6px; display: none; font-size: 0.9rem; line-height: 1.6;"></div>
+                    </div>
+                </article>
+
+                <div class="forum-comments">
+                    <h3 style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: .18em; margin-bottom: 10px;">Discussion</h3>
+
+                    {% if post.reponses is empty %}
+                        <p class="text-muted mb-3">No comments yet. Be the first to reply.</p>
+                    {% else %}
+                        {% for comment in post.reponses %}
+                            <div class="forum-comment">
+                                <div class="forum-comment-meta">
+                                    {{ comment.author ? comment.author.username : 'User' }} •
+                                    {{ comment.createdAt ? comment.createdAt|date('M d, Y H:i') : '' }}
+                                </div>
+                                <div class="forum-comment-content">
+                                    {{ comment.content|nl2br }}
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-outline-info comment-translate-btn" data-comment-id="{{ comment.id }}">🌐 Translate</button>
+                                        <div class="translated-comment-{{ comment.id }} mt-2 p-2" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 6px; display: none; font-size: 0.85rem; line-height: 1.5;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if commentForm %}
+                        <div class="mt-3 position-relative">
+                            {{ form_start(commentForm) }}
+                                {{ form_widget(commentForm) }}
+                                <button class="btn btn-primary mt-2">Post comment</button>
+                            {{ form_end(commentForm) }}
+                            <!-- Autocomplete suggestions container -->
+                            <div id="comment-suggestions" class="list-group" style="position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; z-index: 1000; display: none; background: #2d3748; border: 1px solid #4a5568; box-shadow: 0 4px 6px rgba(0,0,0,0.3);"></div>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mt-3 mb-0">Log in to participate in the discussion.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <aside>
+                <div class="forum-sidebar-block">
+                    <div class="forum-sidebar-title">Most <span>recent discussions</span></div>
+                    {% set hasOther = false %}
+                    {% for item in popularPosts %}
+                        {% if item.id != post.id %}
+                            {% set hasOther = true %}
+                            <div class="forum-sidebar-item">
+                                <a href="{{ path('front_forum_post_show', {'id': item.id}) }}">{{ item.title }}</a>
+                                <div class="forum-sidebar-date">
+                                    {{ item.createdAt ? item.createdAt|date('M d, Y') : '' }} • {{ item.comments|length }} comments
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    {% if not hasOther %}
+                        <p class="text-muted mb-0">No other discussions yet.</p>
+                    {% endif %}
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    {# Report Modal #}
+    {% if is_granted('ROLE_USER') %}
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reportModalLabel">Report Content</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="{{ path('app_report_post', {'postId': post.id}) }}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="reportType" class="form-label">Report Type</label>
+                            <select class="form-select bg-dark text-light" id="reportType" name="type" required>
+                                <option value="inappropriate">Inappropriate Content</option>
+                                <option value="spam">Spam</option>
+                                <option value="harassment">Harassment</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reportDescription" class="form-label">Description</label>
+                            <textarea class="form-control bg-dark text-light" id="reportDescription" name="description" rows="3" placeholder="Please explain why you're reporting this content..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning">Submit Report</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# Like/Dislike JavaScript #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Translate button
+            const translateBtn = document.getElementById('translate-btn');
+            const translatedContent = document.getElementById('translated-content');
+            if (translateBtn && translatedContent) {
+                translateBtn.addEventListener('click', function() {
+                    const postId = '{{ post.id }}';
+                    translateBtn.disabled = true;
+                    translateBtn.textContent = 'Translating...';
+                    translatedContent.style.display = 'none';
+                    
+                    fetch(`/FForumPost/${postId}/translate`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: 'targetLang=fr'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            translatedContent.innerHTML = data.translatedContent;
+                            translatedContent.style.display = 'block';
+                        } else {
+                            translatedContent.innerHTML = 'Translation failed: ' + (data.error || 'Unknown error');
+                            translatedContent.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Translation error:', error);
+                        translatedContent.innerHTML = 'Translation failed: ' + error.message;
+                        translatedContent.style.display = 'block';
+                    })
+                    .finally(() => {
+                        translateBtn.disabled = false;
+                        translateBtn.textContent = '🌐 Translate';
+                    });
+                });
+            }
+
+            // Comment translate buttons
+            const commentTranslateButtons = document.querySelectorAll('.comment-translate-btn');
+            commentTranslateButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const commentId = this.dataset.commentId;
+                    const translatedContainer = document.querySelector(`.translated-comment-${commentId}`);
+                    if (!translatedContainer) return;
+
+                    button.disabled = true;
+                    button.textContent = 'Translating...';
+                    translatedContainer.style.display = 'none';
+
+                    fetch(`/FForumPost/comment/${commentId}/translate`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: 'targetLang=fr'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            translatedContainer.innerHTML = data.translatedContent;
+                            translatedContainer.style.display = 'block';
+                        } else {
+                            translatedContainer.innerHTML = 'Translation failed: ' + (data.error || 'Unknown error');
+                            translatedContainer.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Comment translation error:', error);
+                        translatedContainer.innerHTML = 'Translation failed: ' + error.message;
+                        translatedContainer.style.display = 'block';
+                    })
+                    .finally(() => {
+                        button.disabled = false;
+                        button.textContent = '🌐 Translate';
+                    });
+                });
+            });
+
+            // Autocomplete for comment textarea - initialize automatically
+            (function initAutocomplete() {
+                // Try multiple selectors for the comment textarea
+                const commentTextarea = document.querySelector('textarea[name="content"]') || 
+                                       document.querySelector('#comment_form_content') ||
+                                       document.querySelector('.form-control[type="textarea"]') ||
+                                       document.querySelector('textarea');
+                const suggestionsContainer = document.getElementById('comment-suggestions');
+                console.log('Autocomplete setup:', commentTextarea, suggestionsContainer);
+                
+                if (!commentTextarea || !suggestionsContainer) {
+                    console.log('Textarea or suggestions container not found');
+                    return;
+                }
+                
+                console.log('Textarea found, setting up autocomplete...');
+                
+                // Common English words for instant suggestions
+                const commonWords = [
+                    'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'I',
+                    'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
+                    'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she',
+                    'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their',
+                    'what', 'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go',
+                    'me', 'when', 'make', 'can', 'like', 'time', 'no', 'just', 'him', 'know',
+                    'take', 'people', 'into', 'year', 'your', 'good', 'some', 'could', 'them',
+                    'see', 'other', 'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over',
+                    'think', 'also', 'back', 'after', 'use', 'two', 'how', 'our', 'work',
+                    'first', 'well', 'way', 'even', 'new', 'want', 'because', 'any', 'these',
+                    'give', 'day', 'most', 'us', 'is', 'was', 'are', 'been', 'has', 'had',
+                    'were', 'said', 'did', 'having', 'may', 'am'
+                ];
+
+                let currentSuggestions = [];
+                let selectedIndex = -1;
+
+                commentTextarea.addEventListener('input', function() {
+                    const text = this.value;
+                    const words = text.split(/\s+/);
+                    const currentWord = words[words.length - 1];
+                    console.log('Current word:', currentWord);
+
+                    if (currentWord.length < 2) {
+                        suggestionsContainer.style.display = 'none';
+                        return;
+                    }
+
+                    // Show matching common words instantly
+                    const matches = commonWords.filter(word => 
+                        word.toLowerCase().startsWith(currentWord.toLowerCase())
+                    ).slice(0, 5);
+                    console.log('Matches:', matches);
+
+                    if (matches.length > 0) {
+                        showSuggestions(matches, currentWord);
+                    } else {
+                        // Try free dictionary API for more suggestions
+                        fetch(`https://api.datamuse.com/sug?s=${encodeURIComponent(currentWord)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                const apiSuggestions = data.slice(0, 5).map(item => item.word);
+                                console.log('API suggestions:', apiSuggestions);
+                                if (apiSuggestions.length > 0) {
+                                    showSuggestions(apiSuggestions, currentWord);
+                                } else {
+                                    suggestionsContainer.style.display = 'none';
+                                }
+                            })
+                            .catch(() => {
+                                suggestionsContainer.style.display = 'none';
+                            });
+                    }
+                });
+
+                function showSuggestions(suggestions, currentWord) {
+                    currentSuggestions = suggestions;
+                    selectedIndex = -1;
+                    suggestionsContainer.innerHTML = '';
+                    
+                    suggestions.forEach((word, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'list-group-item list-group-item-action';
+                        item.style.cursor = 'pointer';
+                        item.style.fontSize = '0.9rem';
+                        item.style.padding = '8px 12px';
+                        item.style.border = 'none';
+                        item.style.color = '#e5e7eb';
+                        item.textContent = word;
+                        item.addEventListener('click', () => selectSuggestion(word, currentWord));
+                        suggestionsContainer.appendChild(item);
+                    });
+                    
+                    console.log('Showing suggestions:', suggestions);
+                    suggestionsContainer.style.display = 'block';
+                }
+
+                function selectSuggestion(word, currentWord) {
+                    const text = commentTextarea.value;
+                    const words = text.split(/\s+/);
+                    words[words.length - 1] = word;
+                    commentTextarea.value = words.join(' ');
+                    suggestionsContainer.style.display = 'none';
+                    commentTextarea.focus();
+                }
+
+                // Keyboard navigation
+                commentTextarea.addEventListener('keydown', function(e) {
+                    if (suggestionsContainer.style.display === 'none') return;
+                    
+                    const items = suggestionsContainer.querySelectorAll('.list-group-item');
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                        updateSelection(items);
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        selectedIndex = Math.max(selectedIndex - 1, -1);
+                        updateSelection(items);
+                    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                        e.preventDefault();
+                        const currentWord = this.value.split(/\s+/).pop();
+                        selectSuggestion(currentSuggestions[selectedIndex], currentWord);
+                    } else if (e.key === 'Escape') {
+                        suggestionsContainer.style.display = 'none';
+                    }
+                });
+
+                function updateSelection(items) {
+                    items.forEach((item, index) => {
+                        if (index === selectedIndex) {
+                            item.style.backgroundColor = '#0d6efd';
+                            item.style.color = 'white';
+                        } else {
+                            item.style.backgroundColor = '';
+                            item.style.color = '';
+                        }
+                    });
+                }
+
+                // Hide suggestions when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!commentTextarea.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                        suggestionsContainer.style.display = 'none';
+                    }
+                });
+            })(); // Initialize autocomplete immediately
+
+            const likeButtons = document.querySelectorAll('.like-btn');
+            console.log('Found like buttons:', likeButtons.length);
+            
+            likeButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const postId = this.dataset.postId;
+                    const type = this.dataset.type;
+                    
+                    console.log('Clicking', type, 'for post', postId);
+                    
+                    fetch(`/like/toggle/${postId}/${type}`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-Token': '{{ csrf_token('like_action') }}'
+                        }
+                    })
+                    .then(response => {
+                        console.log('Response status:', response.status);
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                console.error('Error response:', text);
+                                throw new Error(`HTTP ${response.status}: ${text}`);
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Response data:', data);
+                        if (data.success) {
+                            // Update counts
+                            document.querySelector('.like-count').textContent = data.likes;
+                            document.querySelector('.dislike-count').textContent = data.dislikes;
+                            
+                            // Reset all buttons
+                            likeButtons.forEach(btn => {
+                                btn.classList.remove('btn-success', 'btn-danger');
+                                btn.classList.add('btn-outline-success', 'btn-outline-danger');
+                            });
+                            
+                            // Highlight active button
+                            if (data.userLike) {
+                                const activeBtn = document.querySelector(`.like-btn[data-type="${data.userLike}"]`);
+                                if (activeBtn) {
+                                    activeBtn.classList.remove(data.userLike === 'like' ? 'btn-outline-success' : 'btn-outline-danger');
+                                    activeBtn.classList.add(data.userLike === 'like' ? 'btn-success' : 'btn-danger');
+                                }
+                            }
+                        } else if (data.error) {
+                            alert('Error: ' + data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Full error:', error);
+                        alert('Error: ' + error.message);
+                    });
+                });
+            });
+            
+            // Load initial counts
+            const postId = '{{ post.id }}';
+            fetch(`/like/counts/${postId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to load counts');
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Initial counts:', data);
+                    document.querySelector('.like-count').textContent = data.likes;
+                    document.querySelector('.dislike-count').textContent = data.dislikes;
+                    
+                    if (data.userLike) {
+                        const activeBtn = document.querySelector(`.like-btn[data-type="${data.userLike}"]`);
+                        if (activeBtn) {
+                            activeBtn.classList.remove(data.userLike === 'like' ? 'btn-outline-success' : 'btn-outline-danger');
+                            activeBtn.classList.add(data.userLike === 'like' ? 'btn-success' : 'btn-danger');
+                        }
+                    }
+                })
+                .catch(error => console.error('Failed to load counts:', error));
+        });
+    </script>
+{% endblock %}
+

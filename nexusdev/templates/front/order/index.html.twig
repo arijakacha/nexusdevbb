@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Orders{% endblock %}
+
+{% block body %}
+<div class="np-section">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Shop</span>
+        <h1 class="np-section-title">My Orders</h1>
+        <p class="np-section-subtitle">Track your purchases and order history.</p>
+    </div>
+
+    <div class="np-card np-card--stats">
+        <div class="table-responsive">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td><span class="font-monospace text-muted">#{{ order.id }}</span></td>
+                        <td class="font-weight-semibold">{{ order.total|number_format(2, '.', ' ') }} €</td>
+                        <td>
+                            <span class="np-status np-status--{{ order.status|lower }}">{{ order.status }}</span>
+                        </td>
+                        <td class="text-muted">{{ order.createdAt ? order.createdAt|date('M d, Y') : '' }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="np-empty-state py-4">
+                                <div class="np-empty-state__icon">📦</div>
+                                <div class="np-empty-state__title">No Orders Yet</div>
+                                <p>You haven't placed any orders yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

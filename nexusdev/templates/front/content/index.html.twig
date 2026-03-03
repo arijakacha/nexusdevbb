@@ -1,0 +1,249 @@
+{% extends is_granted('ROLE_ORGANIZATION') ? 'base_organization.html.twig' : 'base.html.twig' %}
+
+{% block title %}NexusPlay • Guides{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .guides-page {
+            padding-bottom: 60px;
+        }
+        .guides-layout {
+            display: grid;
+            grid-template-columns: 2fr 1.2fr;
+            gap: 24px;
+            align-items: flex-start;
+        }
+        .guide-hero {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            background: radial-gradient(circle at top left, #4b5563, #020617 55%, #020617 100%);
+            min-height: 260px;
+            padding: 18px 18px 18px 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .guide-hero-meta {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            margin-bottom: 6px;
+        }
+        .guide-hero-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .guide-hero-type {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(15,23,42,0.8);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            margin-bottom: 10px;
+        }
+        .guide-hero-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(120deg, transparent 0, rgba(15,23,42,0.9) 50%, rgba(15,23,42,1) 100%);
+        }
+        .guide-hero-inner {
+            position: relative;
+            z-index: 1;
+        }
+        .guide-hero-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.4;
+        }
+        .guide-side-list .guide-card-small {
+            display: block;
+            padding: 14px 16px;
+            border-radius: 10px;
+            background: #020617;
+            border: 1px solid rgba(148,163,184,0.25);
+            margin-bottom: 10px;
+            text-decoration: none;
+            color: #e5e7eb;
+            transition: border-color .15s ease, background .15s ease, transform .15s ease;
+        }
+        .guide-side-list .guide-card-small:hover {
+            border-color: #4f46e5;
+            background: #0b1120;
+            transform: translateY(-1px);
+        }
+        .guide-card-small-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .guide-card-small-meta {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 4px;
+        }
+        .guides-columns {
+            display: grid;
+            grid-template-columns: 1.4fr 1.4fr;
+            gap: 24px;
+            margin-top: 28px;
+        }
+        .guides-block {
+            background: #020617;
+            border-radius: 12px;
+            padding: 16px 18px;
+            border: 1px solid rgba(148,163,184,0.25);
+        }
+        .guides-block-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: .18em;
+            margin-bottom: 10px;
+        }
+        .guides-block-title span {
+            color: #4f46e5;
+        }
+        .guide-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(31,41,55,0.7);
+        }
+        .guide-list-item:last-child {
+            border-bottom: none;
+        }
+        .guide-list-item a {
+            color: #e5e7eb;
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+        .guide-list-item a:hover {
+            color: #818cf8;
+        }
+        .guide-list-date {
+            font-size: 0.7rem;
+            color: #6b7280;
+        }
+        @media (max-width: 992px) {
+            .guides-layout {
+                grid-template-columns: 1fr;
+            }
+            .guides-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in guides-page">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Guides</span>
+            <h1 class="np-section-title">Coaching guides & esports articles</h1>
+            <p class="np-section-subtitle">Strategy breakdowns, meta updates and tutorials for players and coaches.</p>
+        </div>
+
+        {# Search and Filter Form #}
+        <div class="np-card mb-4">
+            <div class="np-card__body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" name="search" class="form-control" placeholder="Search guides..." value="{{ app.request.query.get('search') }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="type" class="form-select">
+                            <option value="">All Types</option>
+                            {% for contentType in contentTypes %}
+                                <option value="{{ contentType }}" {% if app.request.query.get('type') == contentType %}selected{% endif %}>{{ contentType }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="sortBy" class="form-select">
+                            <option value="createdAt" {% if app.request.query.get('sortBy') == 'createdAt' %}selected{% endif %}>Newest</option>
+                            <option value="title" {% if app.request.query.get('sortBy') == 'title' %}selected{% endif %}>Title</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Filter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if pagination|length == 0 %}
+            <div class="np-empty-state">
+                <div class="np-empty-state__icon">📚</div>
+                <div class="np-empty-state__title">No Content Found</div>
+                <p>No guides or articles match your search criteria.</p>
+            </div>
+        {% else %}
+            {% set featured = pagination|first %}
+            {% set rest = pagination|slice(1) %}
+
+            <div class="guides-layout">
+                <a href="{{ path('front_content_show', {'id': featured.id}) }}" class="guide-hero text-decoration-none text-white">
+                    {% if featured.image %}
+                        <img src="{{ asset(featured.image) }}" alt="{{ featured.title }}" class="guide-hero-img">
+                    {% endif %}
+                    <div class="guide-hero-overlay"></div>
+                    <div class="guide-hero-inner">
+                        <div class="guide-hero-type">{{ featured.type }}</div>
+                        <div class="guide-hero-meta">
+                            {{ featured.createdAt ? featured.createdAt|date('M d, Y') : '' }} •
+                            {{ featured.author ? featured.author.username : 'Unknown' }}
+                        </div>
+                        <div class="guide-hero-title">{{ featured.title }}</div>
+                    </div>
+                </a>
+
+                <div class="guide-side-list">
+                    {% for item in rest|slice(0, 3) %}
+                        <a href="{{ path('front_content_show', {'id': item.id}) }}" class="guide-card-small">
+                            <div class="guide-card-small-title">{{ item.title }}</div>
+                            <div class="guide-card-small-meta">
+                                {{ item.createdAt ? item.createdAt|date('M d, Y') : '' }} •
+                                {{ item.type }}
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="guides-columns mt-4">
+                <div class="guides-block">
+                    <div class="guides-block-title">Most <span>popular</span></div>
+                    {% for item in pagination|slice(0, 5) %}
+                        <div class="guide-list-item">
+                            <a href="{{ path('front_content_show', {'id': item.id}) }}">{{ item.title }}</a>
+                            <span class="guide-list-date">{{ item.createdAt ? item.createdAt|date('M d, Y') : '' }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="guides-block">
+                    <div class="guides-block-title">New <span>guides</span></div>
+                    {% for item in pagination|slice(0, 5) %}
+                        <div class="guide-list-item">
+                            <a href="{{ path('front_content_show', {'id': item.id}) }}">{{ item.title }}</a>
+                            <span class="guide-list-date">{{ item.type }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            {# Pagination #}
+            <div class="d-flex justify-content-center mt-4">
+                {{ knp_pagination_render(pagination, null, {}, {'sortable': false}) }}
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}
+

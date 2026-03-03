@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Reports Management{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Reports Management</h1>
+    
+    {% if reports|length > 0 %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Type</th>
+                        <th>Reporter</th>
+                        <th>Reported</th>
+                        <th>Content</th>
+                        <th>Description</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                        <tr>
+                            <td>{{ report.id }}</td>
+                            <td>
+                                <span class="badge bg-{{ report.type == 'inappropriate' ? 'danger' : (report.type == 'spam' ? 'warning' : 'info') }}">
+                                    {{ report.type|capitalize }}
+                                </span>
+                            </td>
+                            <td>{{ report.reporter.username }}</td>
+                            <td>{{ report.reportedUser ? report.reportedUser.username : 'N/A' }}</td>
+                            <td>
+                                {% if report.post %}
+                                    Post: {{ report.post.title|slice(0, 30) }}...
+                                {% elseif report.comment %}
+                                    Comment
+                                {% else %}
+                                    User Profile
+                                {% endif %}
+                            </td>
+                            <td>{{ report.description|slice(0, 50) }}...</td>
+                            <td>{{ report.createdAt|date('Y-m-d H:i') }}</td>
+                            <td>
+                                <form method="post" action="{{ path('app_report_resolve', {'id': report.id}) }}" style="display: inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('resolve' ~ report.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-success">Resolve</button>
+                                </form>
+                                <form method="post" action="{{ path('app_report_dismiss', {'id': report.id}) }}" style="display: inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('dismiss' ~ report.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-secondary">Dismiss</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            No pending reports.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Conversation with {{ conversation.otherParticipant(app.user).username }}{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-conversation-header">
+            <a href="{{ path('app_messages') }}" class="np-back-link">&larr; Back to messages</a>
+            <div class="np-conversation-user">
+                {% set other = conversation.otherParticipant(app.user) %}
+                {% if other.profilePicture %}
+                    <img src="{{ asset('uploads/profiles/' ~ other.profilePicture) }}" alt="{{ other.username }}" class="np-avatar">
+                {% else %}
+                    <div class="np-avatar-placeholder">{{ other.username|first|upper }}</div>
+                {% endif %}
+                <h2>{{ other.username }}</h2>
+            </div>
+        </div>
+
+        {% for message in app.flashes('danger') %}
+            <div class="alert alert-danger" role="alert">{{ message }}</div>
+        {% endfor %}
+
+        <div class="np-messages-container">
+            <div class="np-messages-list" id="messages-list">
+                {% for message in messages %}
+                    <div class="np-message {% if message.sender == app.user %}np-message-sent{% else %}np-message-received{% endif %}">
+                        <div class="np-message-content">
+                            <p>{{ message.content }}</p>
+                            <span class="np-message-time">{{ message.createdAt|date('H:i') }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="np-message-form">
+                <form method="post" action="{{ path('app_message_send_form', {id: conversation.id}) }}" id="message-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('message_send_' ~ conversation.id) }}">
+                    <textarea name="content" id="message-input" class="form-control" rows="3" required></textarea>
+                    <button type="submit" class="btn btn-primary" id="send-btn">Send</button>
+                </form>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}

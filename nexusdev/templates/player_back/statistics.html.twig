@@ -1,0 +1,192 @@
+{% extends 'base_player.html.twig' %}
+
+{% block title %}Career Statistics{% endblock %}
+
+{% block body %}
+    {# Header Banner #}
+    <div class="stats-banner" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%); padding: 2.5rem 0; margin-bottom: 2rem; border-bottom: 1px solid rgba(59,130,246,0.3);">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: #60a5fa; margin-bottom: 0.5rem;">Performance Analytics</div>
+                    <h1 style="font-size: 2.5rem; font-weight: 700; margin: 0; background: linear-gradient(90deg, #fff, #60a5fa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Career Statistics</h1>
+                    <p style="color: #94a3b8; margin: 0.5rem 0 0;">{{ player.nickname }} • {{ player.game.name|default('All Games') }}</p>
+                </div>
+                <div class="d-none d-md-block">
+                    <a href="{{ path('app_player_back') }}" class="btn btn-outline-light">← Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="np-section">
+        {% if statistics is empty %}
+            <div class="text-center py-5">
+                <div style="width: 80px; height: 80px; background: rgba(59,130,246,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                    <svg width="40" height="40" fill="#3b82f6" viewBox="0 0 16 16"><path d="M0 0h1v15h15v1H0V0Zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.3 3.3a.5.5 0 0 1-.708 0L7 6.707l-3.3 3.3a.5.5 0 0 1-.708 0l-1.1-1.1a.5.5 0 0 1 0-.708l3.3-3.3a.5.5 0 0 1 .708 0L9 5.293l3.3-3.3a.5.5 0 0 1 .7 0V3.5Z"/></svg>
+                </div>
+                <h4 style="color: #94a3b8;">No Statistics Yet</h4>
+                <p style="color: #64748b; max-width: 400px; margin: 0 auto;">Your match statistics will appear here once you start playing competitive matches.</p>
+            </div>
+        {% else %}
+            <div class="row g-4">
+                {% for stat in statistics %}
+                    <div class="col-lg-6">
+                        <div class="game-stats-card" style="background: linear-gradient(145deg, rgba(15,23,42,0.8) 0%, rgba(30,41,59,0.9) 100%); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; overflow: hidden; transition: all 0.3s;">
+                            {# Card Header #}
+                            <div class="p-4" style="background: linear-gradient(90deg, rgba(59,130,246,0.15) 0%, transparent 100%); border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                            <svg width="24" height="24" fill="white" viewBox="0 0 16 16"><path d="M0 1a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V1zm4 0v6h8V1H4zm8 8H4v6h8V9zM1 1v2h2V1H1zm2 3H1v2h2V4zM1 7v2h2V7H1zm2 3H1v2h2v-2zm-2 3v2h2v-2H1zM15 1h-2v2h2V1zm-2 3v2h2V4h-2zm2 3h-2v2h2V7zm-2 3v2h2v-2h-2zm2 3h-2v2h2v-2z"/></svg>
+                                        </div>
+                                        <div>
+                                            <h5 class="mb-0" style="font-weight: 600;">{{ stat.game.name }}</h5>
+                                            {% if stat.team %}
+                                                <span style="font-size: 0.8rem; color: #64748b;">{{ stat.team.name }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <span class="badge" style="background: rgba(16,185,129,0.2); color: #34d399; font-size: 0.8rem; padding: 0.5rem 1rem;">
+                                        {{ stat.matchesPlayed }} Matches
+                                    </span>
+                                </div>
+                            </div>
+
+                            {# Win Rate Bar #}
+                            <div class="p-4">
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span style="font-size: 0.8rem; color: #94a3b8;">Win Rate</span>
+                                        <span style="font-size: 0.9rem; font-weight: 600; color: #10b981;">{{ stat.winRate }}%</span>
+                                    </div>
+                                    <div style="height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden;">
+                                        <div style="width: {{ stat.winRate }}%; height: 100%; background: linear-gradient(90deg, #10b981 0%, #34d399 100%); border-radius: 4px; transition: width 0.5s ease;"></div>
+                                    </div>
+                                </div>
+
+                                {# Main Stats Grid #}
+                                <div class="row g-3 mb-4">
+                                    <div class="col-4 text-center">
+                                        <div style="font-size: 1.8rem; font-weight: 700; color: #3b82f6;">{{ stat.wins }}</div>
+                                        <div style="font-size: 0.7rem; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.5px;">Wins</div>
+                                    </div>
+                                    <div class="col-4 text-center">
+                                        <div style="font-size: 1.8rem; font-weight: 700; color: #ef4444;">{{ stat.losses }}</div>
+                                        <div style="font-size: 0.7rem; color: #f87171; text-transform: uppercase; letter-spacing: 0.5px;">Losses</div>
+                                    </div>
+                                    <div class="col-4 text-center">
+                                        {% if stat.deaths > 0 %}
+                                            <div style="font-size: 1.8rem; font-weight: 700; color: #8b5cf6;">{{ (stat.kills / stat.deaths)|number_format(2) }}</div>
+                                        {% else %}
+                                            <div style="font-size: 1.8rem; font-weight: 700; color: #8b5cf6;">-</div>
+                                        {% endif %}
+                                        <div style="font-size: 0.7rem; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.5px;">K/D</div>
+                                    </div>
+                                </div>
+
+                                {# KDA Breakdown #}
+                                <div style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 1rem;">
+                                    <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 0.75rem;">KDA Breakdown</div>
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <div style="font-size: 1.3rem; font-weight: 600; color: #f59e0b;">{{ stat.kills }}</div>
+                                            <div style="font-size: 0.7rem; color: #fbbf24;">Kills</div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div style="font-size: 1.3rem; font-weight: 600; color: #ec4899;">{{ stat.deaths }}</div>
+                                            <div style="font-size: 0.7rem; color: #f472b6;">Deaths</div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div style="font-size: 1.3rem; font-weight: 600; color: #06b6d4;">{{ stat.assists }}</div>
+                                            <div style="font-size: 0.7rem; color: #22d3ee;">Assists</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.05);">
+                                        <div class="d-flex justify-content-center align-items-center gap-2">
+                                            <span style="font-size: 0.8rem; color: #64748b;">KDA Ratio:</span>
+                                            {% if stat.deaths > 0 %}
+                                                <span style="font-size: 1rem; font-weight: 600; color: #fff;">{{ ((stat.kills + stat.assists) / stat.deaths)|number_format(2) }}</span>
+                                            {% else %}
+                                                <span style="font-size: 1rem; font-weight: 600; color: #fff;">-</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {# Career Summary Card #}
+            {% set totalMatches = 0 %}
+            {% set totalWins = 0 %}
+            {% set totalKills = 0 %}
+            {% set totalDeaths = 0 %}
+            {% set totalAssists = 0 %}
+            {% for stat in statistics %}
+                {% set totalMatches = totalMatches + stat.matchesPlayed %}
+                {% set totalWins = totalWins + stat.wins %}
+                {% set totalKills = totalKills + stat.kills %}
+                {% set totalDeaths = totalDeaths + stat.deaths %}
+                {% set totalAssists = totalAssists + stat.assists %}
+            {% endfor %}
+
+            <div class="mt-4">
+                <div class="career-summary" style="background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(59,130,246,0.1) 50%, rgba(139,92,246,0.1) 100%); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 2rem;">
+                    <h4 class="mb-4" style="font-weight: 600;">Career Summary</h4>
+                    <div class="row text-center g-4">
+                        <div class="col-6 col-md-3">
+                            <div style="font-size: 2rem; font-weight: 700; color: #3b82f6;">{{ totalMatches }}</div>
+                            <div style="font-size: 0.75rem; color: #60a5fa; text-transform: uppercase;">Total Matches</div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div style="font-size: 2rem; font-weight: 700; color: #10b981;">{{ totalWins }}</div>
+                            <div style="font-size: 0.75rem; color: #34d399; text-transform: uppercase;">Total Wins</div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div style="font-size: 2rem; font-weight: 700; color: #f59e0b;">{{ totalMatches > 0 ? ((totalWins / totalMatches) * 100)|round(1) : 0 }}%</div>
+                            <div style="font-size: 0.75rem; color: #fbbf24; text-transform: uppercase;">Overall Win Rate</div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            {% if totalDeaths > 0 %}
+                                <div style="font-size: 2rem; font-weight: 700; color: #8b5cf6;">{{ (totalKills / totalDeaths)|number_format(2) }}</div>
+                            {% else %}
+                                <div style="font-size: 2rem; font-weight: 700; color: #8b5cf6;">-</div>
+                            {% endif %}
+                            <div style="font-size: 0.75rem; color: #a78bfa; text-transform: uppercase;">Career K/D</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </section>
+
+    <style>
+        .game-stats-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border-color: rgba(59,130,246,0.2) !important;
+        }
+        .career-summary {
+            position: relative;
+            overflow: hidden;
+        }
+        .career-summary::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+    </style>
+{% endblock %}
+

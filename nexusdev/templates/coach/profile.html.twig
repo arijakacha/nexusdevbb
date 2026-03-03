@@ -1,0 +1,84 @@
+{% extends 'base_coach.html.twig' %}
+
+{% block title %}Coach Profile{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Coach Profile</h1>
+            <p class="np-section-subtitle">Manage your coaching profile and settings.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">Profile Information</h2>
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        <div class="mb-3">
+                            {{ form_label(form.experienceLevel) }}
+                            {{ form_widget(form.experienceLevel) }}
+                            {{ form_errors(form.experienceLevel) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(form.bio) }}
+                            {{ form_widget(form.bio) }}
+                            {{ form_errors(form.bio) }}
+                            <div class="form-text">Tell potential clients about your coaching experience and expertise.</div>
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(form.pricePerSession) }}
+                            {{ form_widget(form.pricePerSession) }}
+                            {{ form_errors(form.pricePerSession) }}
+                            <div class="form-text">Set your hourly rate for coaching sessions.</div>
+                        </div>
+                        <button class="btn btn-success">Save Changes</button>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-card np-animate-in-delayed mb-4">
+                    <h5 class="mb-3">Profile Preview</h5>
+                    <div class="text-center mb-3">
+                        {% if app.user.profilePicture %}
+                            <img src="{{ asset('uploads/' ~ app.user.profilePicture) }}" alt="Profile" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 100px;">
+                                <span style="font-size: 2rem;">{{ app.user.username|first|upper }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="text-center">
+                        <h5>{{ app.user.username }}</h5>
+                        <p class="text-muted mb-1">{{ coach.experienceLevel|default('No experience level set') }}</p>
+                        {% if coach.rating %}
+                            <p class="mb-1">
+                                <span class="badge bg-success">{{ coach.rating }} / 5 Rating</span>
+                            </p>
+                        {% endif %}
+                        <p class="mb-1">
+                            <span class="badge bg-primary">${{ coach.pricePerSession|default('0.00') }} / session</span>
+                        </p>
+                    </div>
+                    <hr>
+                    <h6>Bio</h6>
+                    <p class="text-muted" style="font-size: 0.9rem;">{{ coach.bio|default('No bio provided yet.') }}</p>
+                </div>
+
+                <div class="np-card np-animate-in-delayed">
+                    <h5 class="mb-3">Quick Stats</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Member Since</span>
+                        <span>{{ coach.createdAt|date('M Y') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">User Type</span>
+                        <span class="badge bg-info">Coach</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

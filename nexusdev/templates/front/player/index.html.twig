@@ -1,0 +1,154 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Players Directory{% endblock %}
+
+{% block body %}
+<section class="np-section np-animate-in">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Players</span>
+        <h1 class="np-section-title">Players Directory</h1>
+        <p class="np-section-subtitle">Browse all players, their teams and games.</p>
+    </div>
+
+    {# Multi-criteria Search Form #}
+    <div class="np-card mb-4">
+        <div class="np-card__header">
+            <h3 class="np-card__title">🔍 Advanced Search</h3>
+        </div>
+        <div class="np-card__body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control" placeholder="Search nickname..." value="{{ app.request.query.get('search') }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="game" class="form-select">
+                        <option value="">All Games</option>
+                        {% for game in games %}
+                            <option value="{{ game.id }}" {% if app.request.query.get('game') == game.id %}selected{% endif %}>{{ game.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="team" class="form-select">
+                        <option value="">All Teams</option>
+                        {% for team in teams %}
+                            <option value="{{ team.id }}" {% if app.request.query.get('team') == team.id %}selected{% endif %}>{{ team.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="role" class="form-select">
+                        <option value="">All Roles</option>
+                        {% for role in roles %}
+                            <option value="{{ role }}" {% if app.request.query.get('role') == role %}selected{% endif %}>{{ role }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="isPro" class="form-select">
+                        <option value="">All Players</option>
+                        <option value="1" {% if app.request.query.get('isPro') == '1' %}selected{% endif %}>Pro Only</option>
+                        <option value="0" {% if app.request.query.get('isPro') == '0' %}selected{% endif %}>Non-Pro</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+
+                {# Score Range and Sort - now inside the form #}
+                <div class="col-md-3">
+                    <label class="form-label">Min Score</label>
+                    <input type="number" name="minScore" class="form-control" placeholder="0" value="{{ app.request.query.get('minScore') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Max Score</label>
+                    <input type="number" name="maxScore" class="form-control" placeholder="5000" value="{{ app.request.query.get('maxScore') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Sort By</label>
+                    <select name="sortBy" class="form-select">
+                        <option value="score" {% if app.request.query.get('sortBy') == 'score' %}selected{% endif %}>Score</option>
+                        <option value="nickname" {% if app.request.query.get('sortBy') == 'nickname' %}selected{% endif %}>Nickname</option>
+                        <option value="createdAt" {% if app.request.query.get('sortBy') == 'createdAt' %}selected{% endif %}>Date</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Order</label>
+                    <select name="sortOrder" class="form-select">
+                        <option value="DESC" {% if app.request.query.get('sortOrder') == 'DESC' %}selected{% endif %}>Descending</option>
+                        <option value="ASC" {% if app.request.query.get('sortOrder') == 'ASC' %}selected{% endif %}>Ascending</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="np-card np-card--stats">
+        <div class="table-responsive">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Player</th>
+                        <th>Role</th>
+                        <th>Team</th>
+                        <th>Game</th>
+                        <th>Score</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for player in pagination %}
+                    <tr>
+                        <td><span class="font-monospace text-muted">#{{ player.id }}</span></td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if player.profilePicture %}
+                                    <img src="{{ asset('uploads/' ~ player.profilePicture) }}" alt="{{ player.nickname }}" class="np-avatar np-avatar--xs">
+                                {% else %}
+                                    <div class="np-avatar np-avatar--xs">{{ player.nickname|first|upper }}</div>
+                                {% endif %}
+                                <div>
+                                    <div class="font-weight-semibold">{{ player.nickname }}</div>
+                                    <div class="text-muted" style="font-size: 0.8rem;">{{ player.realName|default('') }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="np-badge np-badge--secondary">{{ player.role|default('N/A') }}</span></td>
+                        <td class="text-muted">{{ player.team ? player.team.name : 'Free Agent' }}</td>
+                        <td class="text-muted">{{ player.game ? player.game.name : 'N/A' }}</td>
+                        <td>
+                            <span class="font-weight-bold" style="color: #6366f1;">{{ player.score }}</span>
+                            {% if player.isPro %}
+                                <span class="np-badge np-badge--primary ms-1">PRO</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ path('app_player_dashboard', {'id': player.id}) }}" class="btn btn-sm btn-primary">View</a>
+                            <a href="{{ path('front_player_pdf', {'id': player.id}) }}" class="btn btn-sm btn-secondary" title="Download PDF">📄</a>
+                            <a href="{{ path('front_player_qrcode', {'id': player.id}) }}" class="btn btn-sm btn-secondary" title="QR Code">📱</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="np-empty-state py-4">
+                                <div class="np-empty-state__icon">🎮</div>
+                                <div class="np-empty-state__title">No Players Found</div>
+                                <p>No players match your search criteria.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {# Pagination #}
+        <div class="d-flex justify-content-center mt-4">
+            {{ knp_pagination_render(pagination, null, {}, {'sortable': false}) }}
+        </div>
+    </div>
+</section>
+{% endblock %}
+

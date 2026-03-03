@@ -1,0 +1,112 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}QR Code - {{ player.nickname }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .qr-page {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .qr-card {
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .qr-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            margin: 0 auto 15px;
+            border: 3px solid rgba(255,255,255,0.2);
+        }
+        .qr-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .qr-code-box {
+            background: white;
+            padding: 15px;
+            border-radius: 16px;
+            display: inline-block;
+            margin: 20px 0;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .qr-code-box img {
+            display: block;
+            width: 220px;
+            height: 220px;
+            border-radius: 8px;
+        }
+        .qr-player-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .qr-player-info {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        .qr-instruction {
+            color: #64748b;
+            font-size: 0.85rem;
+            margin: 15px 0;
+        }
+        .qr-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<section class="np-section np-animate-in">
+    <div class="np-section-header">
+        <span class="np-section-kicker">QR Code</span>
+        <h1 class="np-section-title">{{ player.nickname }}</h1>
+        <p class="np-section-subtitle">Scan this code to view the player profile</p>
+    </div>
+
+    <div class="qr-page">
+        <div class="qr-card">
+            {% if player.profilePicture %}
+                <div class="qr-avatar">
+                    <img src="{{ asset('uploads/' ~ player.profilePicture) }}" alt="{{ player.nickname }}">
+                </div>
+            {% else %}
+                <div class="qr-avatar">{{ player.nickname|first|upper }}</div>
+            {% endif %}
+            
+            <div class="qr-player-name">{{ player.nickname }}</div>
+            <div class="qr-player-info">{{ player.game.name }} • {{ player.role|default('Player') }}</div>
+            
+            <div class="qr-code-box">
+                <img src="{{ qrCode }}" alt="QR Code for {{ player.nickname }}">
+            </div>
+            
+            <p class="qr-instruction">Scan this QR code to quickly access this player's profile</p>
+            
+            <div class="qr-actions">
+                <a href="{{ path('app_player_dashboard', {'id': player.id}) }}" class="btn btn-primary">View Profile</a>
+                <a href="{{ path('front_player_index') }}" class="btn btn-outline-secondary">Back</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

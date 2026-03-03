@@ -1,0 +1,87 @@
+{% extends 'base_organization.html.twig' %}
+
+{% block title %}Organization • Shop products{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Shop</span>
+            <h1 class="np-section-title">Organization products</h1>
+            <p class="np-section-subtitle">Manage the items your organization sells in the NexusPlay shop.</p>
+        </div>
+
+        <div class="np-back-layout" style="grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 1.5rem; display: grid;">
+            <div>
+                <h2 class="np-section-title" style="margin-bottom: 1rem;">Products list</h2>
+                <div class="np-card">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for product in products %}
+                            <tr>
+                                <td>
+                                    {% if product.imagePath %}
+                                        <img src="{{ asset('uploads/products/' ~ product.imagePath) }}" alt="{{ product.name }}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 6px;">
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.type }}</td>
+                                <td>{{ product.quantity }}</td>
+                                <td>{{ product.price|number_format(2, '.', ' ') }} €</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5">No products found.</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">
+                        {% if editing %}
+                            Edit product #{{ currentProduct.id }}
+                        {% else %}
+                            Create new product
+                        {% endif %}
+                    </h2>
+
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        {% if currentProduct.imagePath %}
+                            <div class="mb-3">
+                                <label class="form-label">Current image</label>
+                                <div>
+                                    <img src="{{ asset('uploads/products/' ~ currentProduct.imagePath) }}" alt="{{ currentProduct.name }}" style="max-width: 100%; border-radius: 8px;">
+                                </div>
+                            </div>
+                        {% endif %}
+                        {{ form_widget(form) }}
+                        <button class="btn btn-success">
+                            {% if editing %}Update{% else %}Save{% endif %}
+                        </button>
+                    {{ form_end(form) }}
+
+                    {% if editing %}
+                        <p class="np-form-footer">
+                            <a href="{{ path('app_product_back') }}" class="btn btn-secondary">Cancel edit</a>
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

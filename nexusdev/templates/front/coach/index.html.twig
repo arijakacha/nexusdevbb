@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Find a Coach - Book Your Session{% endblock %}
+
+{% block body %}
+<div class="np-section">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Professional Coaching</span>
+        <h1 class="np-section-title">Find Your Perfect Coach</h1>
+        <p class="np-section-subtitle">Book a session with experienced coaches to improve your gameplay and reach new heights.</p>
+    </div>
+
+    {# Search and Filter Form #}
+    <div class="np-card mb-4">
+        <div class="np-card__body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control" placeholder="Search coach name..." value="{{ app.request.query.get('search') }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="experience" class="form-select">
+                        <option value="">All Levels</option>
+                        {% for level in experienceLevels %}
+                            <option value="{{ level }}" {% if app.request.query.get('experience') == level %}selected{% endif %}>{{ level }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="minRate" class="form-control" placeholder="Min Rate" value="{{ app.request.query.get('minRate') }}">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="maxRate" class="form-control" placeholder="Max Rate" value="{{ app.request.query.get('maxRate') }}">
+                </div>
+                <div class="col-md-2">
+                    <select name="sortBy" class="form-select">
+                        <option value="experienceLevel" {% if app.request.query.get('sortBy') == 'experienceLevel' %}selected{% endif %}>Experience</option>
+                        <option value="pricePerSession" {% if app.request.query.get('sortBy') == 'pricePerSession' %}selected{% endif %}>Rate</option>
+                        <option value="createdAt" {% if app.request.query.get('sortBy') == 'createdAt' %}selected{% endif %}>Newest</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for coach in pagination %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="np-coach-card">
+                <div class="np-coach-card__header">
+                    {% if coach.user.profilePicture %}
+                        <img src="{{ asset('uploads/' ~ coach.user.profilePicture) }}" alt="{{ coach.user.username }}" class="np-coach-card__avatar">
+                    {% else %}
+                        <div class="np-coach-card__avatar">{{ coach.user.username|first|upper }}</div>
+                    {% endif %}
+                    <div class="np-coach-card__name">{{ coach.user.username }}</div>
+                    <div class="np-coach-card__title">{{ coach.experienceLevel|default('Professional Coach') }}</div>
+                    <div class="np-coach-card__rating">
+                        <span>★</span>
+                        <span>{{ coach.rating|default('0.0') }}</span>
+                    </div>
+                </div>
+                
+                <div class="np-coach-card__body">
+                    <div class="np-coach-card__badges">
+                        <span class="np-coach-card__badge np-coach-card__badge--verified">✓ Verified</span>
+                        {% if coach.experienceLevel == 'Expert' %}
+                            <span class="np-coach-card__badge np-coach-card__badge--pro">PRO</span>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="np-coach-card__bio">
+                        {{ coach.bio|default('Experienced coach ready to help you improve your gameplay, strategy, and competitive skills. Book a session today!')|slice(0, 120) }}{% if coach.bio|length > 120 %}...{% endif %}
+                    </p>
+                    
+                    <div class="np-coach-card__stats">
+                        <div class="np-coach-card__stat">
+                            <span class="np-coach-card__stat-value">{{ coach.sessionsCompleted|default(0) }}</span>
+                            <span class="np-coach-card__stat-label">Sessions</span>
+                        </div>
+                        <div class="np-coach-card__stat">
+                            <span class="np-coach-card__stat-value">{{ coach.playersCoached|default(0) }}</span>
+                            <span class="np-coach-card__stat-label">Players</span>
+                        </div>
+                        <div class="np-coach-card__stat">
+                            <span class="np-coach-card__stat-value">{{ coach.responseTime|default('<24h') }}</span>
+                            <span class="np-coach-card__stat-label">Response</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="np-coach-card__footer">
+                    <div class="np-coach-card__price">
+                        <span class="np-coach-card__price-value">
+                            {% if coach.pricePerSession %}{{ coach.pricePerSession }}{% else %}Free{% endif %}
+                        </span>
+                        <span class="np-coach-card__price-label">
+                            {% if coach.pricePerSession %}VC per session{% else %}Session{% endif %}
+                        </span>
+                    </div>
+                    
+                    {% if app.user and app.user.hasPlayer %}
+                        <a href="{{ path('front_coaching_book', {'coachId': coach.id}) }}" class="btn btn-primary np-coach-card__btn">
+                            Book Now →
+                        </a>
+                    {% elseif app.user %}
+                        <a href="{{ path('app_player_become') }}" class="btn btn-secondary np-coach-card__btn">
+                            Become Player
+                        </a>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="btn btn-secondary np-coach-card__btn">
+                            Login to Book
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="np-empty-state">
+                <div class="np-empty-state__icon">👤</div>
+                <div class="np-empty-state__title">No Coaches Available</div>
+                <p>No coaches match your search criteria.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {# Pagination #}
+    <div class="d-flex justify-content-center mt-4">
+        {{ knp_pagination_render(pagination, null, {}, {'sortable': false}) }}
+    </div>
+</div>
+{% endblock %}
+

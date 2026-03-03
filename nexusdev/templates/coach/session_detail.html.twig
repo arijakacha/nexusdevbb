@@ -1,0 +1,164 @@
+{% extends 'base_coach.html.twig' %}
+
+{% block title %}Session Details{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Session Details</h1>
+            <p class="np-section-subtitle">View and manage coaching session #{{ session.id }}.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                <div class="np-form-card np-animate-in-delayed mb-4">
+                    <h2 class="np-section-title mb-4">Session Information</h2>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="text-muted">Player</label>
+                            <p class="mb-0">
+                                <a href="{{ path('app_coach_player_detail', {'id': session.player.id}) }}" style="color: #3b82f6; text-decoration: none; font-weight: 600;">
+                                    {{ session.player.nickname }}
+                                </a>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted">Game</label>
+                            <p class="mb-0">{{ session.player.game.name|default('No game assigned') }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="text-muted">Scheduled Date & Time</label>
+                            <p class="mb-0">{{ session.scheduledAt|date('Y-m-d H:i') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted">Created On</label>
+                            <p class="mb-0">{{ session.createdAt|date('Y-m-d H:i') }}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="text-muted">Current Status</label>
+                            <p class="mb-0">
+                                <span class="badge {% if session.status == 'COMPLETED' %}bg-success{% elseif session.status == 'CONFIRMED' %}bg-primary{% elseif session.status == 'CANCELLED' %}bg-danger{% else %}bg-warning text-dark{% endif %}" style="font-size: 1rem;">
+                                    {{ session.status }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title mb-4">Update Session</h2>
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        <div class="mb-3">
+                            {{ form_label(form.status) }}
+                            {{ form_widget(form.status) }}
+                            {{ form_errors(form.status) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(form.notes) }}
+                            {{ form_widget(form.notes) }}
+                            {{ form_errors(form.notes) }}
+                            <div class="form-text">Add session notes, progress updates, or feedback for the player.</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">Update Session</button>
+                            <a href="{{ path('app_coach_sessions') }}" class="btn btn-outline-secondary">Back to History</a>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-card np-animate-in-delayed mb-4">
+                    <h5 class="mb-3">Quick Actions</h5>
+                    <div class="d-flex flex-column gap-2">
+                        <a href="{{ path('app_coach_back', {'date': session.scheduledAt|date('Y-m-d')}) }}" class="btn btn-outline-primary btn-sm">View Day Schedule</a>
+                        <a href="{{ path('app_coach_calendar') }}" class="btn btn-outline-primary btn-sm">View Calendar</a>
+                    </div>
+                </div>
+
+                <div class="np-card np-animate-in-delayed mb-4">
+                    <h5 class="mb-3">Video Meeting</h5>
+                    
+                    {% include 'coach/_jitsi_meeting.html.twig' %}
+                    
+                    {% if session.meetingExpiresAt %}
+                        <div class="text-muted mt-3" style="font-size: 0.75rem;">
+                            <i class="bi bi-clock me-1"></i>
+                            Meeting expires: {{ session.meetingExpiresAt|date('H:i') }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="np-card np-animate-in-delayed">
+                    <h5 class="mb-3">Player Info</h5>
+                    <div class="text-center mb-3">
+                        {% if session.player.profilePicture %}
+                            <img src="{{ asset('uploads/' ~ session.player.profilePicture) }}" alt="{{ session.player.nickname }}" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px;">
+                                <span style="font-size: 1.5rem;">{{ session.player.nickname|first|upper }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="text-center">
+                        <h6>{{ session.player.nickname }}</h6>
+                        <p class="text-muted mb-1" style="font-size: 0.85rem;">{{ session.player.game.name|default('No game') }}</p>
+                        <p class="mb-1">
+                            <span class="badge bg-info">{{ session.player.getRank() }}</span>
+                            {% if session.player.isPro %}
+                                <span class="badge bg-warning text-dark">PRO</span>
+                            {% endif %}
+                        </p>
+                        <p class="text-muted" style="font-size: 0.8rem;">Score: {{ session.player.score }}</p>
+                    </div>
+                    <hr>
+                    <a href="{{ path('app_coach_player_detail', {'id': session.player.id}) }}" class="btn btn-outline-primary btn-sm w-100">View Full Profile</a>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function createMeeting() {
+            const btn = document.getElementById('create-meeting-btn');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Creating...';
+            
+            fetch('{{ path("app_coach_session_create_meeting", {"id": session.id}) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page to show the embedded meeting
+                    window.location.reload();
+                } else {
+                    alert('Failed to create meeting: ' + data.error);
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while creating the meeting');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        }
+    </script>
+{% endblock %}
+

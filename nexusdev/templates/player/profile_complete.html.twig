@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Complete Your Player Profile - NexusPlay{% endblock %}
+
+{% block body %}
+<section class="np-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="np-card" style="padding: 2rem;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <h1 class="np-section-title">⚡ Player Profile Setup</h1>
+                        <p class="np-text-muted">Complete your gaming profile to unlock all features and start competing!</p>
+                    </div>
+                    
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form_label(form.nickname) }}
+                                {{ form_widget(form.nickname, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.nickname) }}
+                                <small class="np-text-muted">This is how other players will see you</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form_label(form.realName) }}
+                                {{ form_widget(form.realName, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.realName) }}
+                                <small class="np-text-muted">Optional - only visible to you</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form_label(form.role) }}
+                                {{ form_widget(form.role, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.role) }}
+                                <small class="np-text-muted">Your preferred position in-game</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form_label(form.nationality) }}
+                                {{ form_widget(form.nationality, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.nationality) }}
+                                <small class="np-text-muted">Represent your country!</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form_label(form.game) }}
+                            {{ form_widget(form.game, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.game) }}
+                            <small class="np-text-muted">Choose your main competitive game</small>
+                        </div>
+                        
+                        <div style="margin-top: 2rem; text-align: center;">
+                            <button type="submit" class="btn btn-primary btn-lg">🚀 Launch My Player Profile</button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+                
+                <div class="np-card" style="margin-top: 1.5rem; padding: 1.5rem; background: var(--np-surface);">
+                    <h4 style="color: var(--np-primary); margin-bottom: 1rem;">🎯 What's Next?</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 0.5rem 0;">✅ Your initial rank will be <strong>Bronze</strong></li>
+                        <li style="padding: 0.5rem 0;">✅ Start with <strong>0 points</strong> - climb the leaderboard!</li>
+                        <li style="padding: 0.5rem 0;">✅ Join tournaments and earn virtual currency</li>
+                        <li style="padding: 0.5rem 0;">✅ Connect with coaches to improve your skills</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

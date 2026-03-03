@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Recruit PRO players{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Organization</span>
+            <h1 class="np-section-title">Recruit PRO players into your teams</h1>
+            <p class="np-section-subtitle">
+                Organization: <strong>{{ organization.name ?? 'Unnamed organization' }}</strong>
+            </p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                <h2>Available PRO players</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Avatar</th>
+                            <th>Nickname</th>
+                            <th>Game</th>
+                            <th>Current team</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for player in proPlayers %}
+                        <tr>
+                            <td>
+                                {% if player.profilePicture %}
+                                    <img src="{{ asset('uploads/logos/' ~ player.profilePicture) }}" alt="{{ player.nickname }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                                {% else %}
+                                    <span class="badge bg-secondary">🎮</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ player.nickname }}</td>
+                            <td>{{ player.game ? player.game.name : '' }}</td>
+                            <td>{{ player.team ? player.team.name : '-' }}</td>
+                            <td>{{ player.score }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4">No PRO players available yet.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">Assign a player to a team</h2>
+                    {% if teams is empty %}
+                        <p class="np-form-footer">You have no teams linked to your organization yet. Create teams first.</p>
+                    {% else %}
+                        {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                            {{ form_widget(form) }}
+                            <button class="btn btn-success w-100" type="submit">Assign player</button>
+                        {{ form_end(form) }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

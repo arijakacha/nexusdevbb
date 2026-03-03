@@ -1,0 +1,407 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Content management{% endblock %}
+
+{% block admin_content %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Content management</h1>
+            <p class="np-section-subtitle">Manage news and guides displayed on the platform.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                {# Search Form #}
+                <div class="np-card mb-4">
+                    <div class="np-card__body">
+                        <form method="get" class="row g-3">
+                            <div class="col-md-8">
+                                <input type="text" name="search" class="form-control" placeholder="Search content title..." value="{{ app.request.query.get('search') }}">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100">Search</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <h2 class="np-section-title mb-3">Contents list</h2>
+                <div class="np-card p-0 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="px-4 py-3" style="width: 80px;">
+                                        <a href="{{ path('app_content_back', {'sort': 'id', 'direction': sort == 'id' and direction == 'ASC' ? 'DESC' : 'ASC', 'search': app.request.query.get('search')}) }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                                            <span>#</span>
+                                            {% if sort == 'id' %}<i class="bi bi-caret-{{ direction == 'ASC' ? 'up' : 'down' }}-fill"></i>{% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="px-4 py-3">
+                                        <a href="{{ path('app_content_back', {'sort': 'title', 'direction': sort == 'title' and direction == 'ASC' ? 'DESC' : 'ASC', 'search': app.request.query.get('search')}) }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                                            <span>Title</span>
+                                            {% if sort == 'title' %}<i class="bi bi-caret-{{ direction == 'ASC' ? 'up' : 'down' }}-fill"></i>{% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="px-4 py-3">
+                                        <a href="{{ path('app_content_back', {'sort': 'type', 'direction': sort == 'type' and direction == 'ASC' ? 'DESC' : 'ASC', 'search': app.request.query.get('search')}) }}" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                                            <span>Type</span>
+                                            {% if sort == 'type' %}<i class="bi bi-caret-{{ direction == 'ASC' ? 'up' : 'down' }}-fill"></i>{% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="px-4 py-3">Author</th>
+                                    <th class="px-4 py-3 text-end" style="width: 150px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for content in pagination %}
+                                <tr class="align-middle">
+                                    <td class="px-4 fw-semibold text-muted">{{ content.id }}</td>
+                                    <td class="px-4">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-{{ content.type == 'NEWS' ? 'newspaper' : 'book' }} text-primary"></i>
+                                            <span class="fw-medium">{{ content.title }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4">
+                                        <span class="badge bg-{{ content.type == 'NEWS' ? 'info' : 'success' }}">
+                                            <i class="bi bi-{{ content.type == 'NEWS' ? 'newspaper' : 'book' }} me-1"></i>{{ content.type }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="np-avatar-sm" style="width: 28px; height: 28px; background: linear-gradient(135deg, #8b5cf6, #6366f1); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.65rem; font-weight: 600;">
+                                                {{ content.author.username|slice(0, 2)|upper }}
+                                            </div>
+                                            <span class="text-muted">{{ content.author.username }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 text-end">
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <a href="{{ path('app_content_back', {'id': content.id}) }}" class="btn btn-sm btn-primary d-flex align-items-center gap-1" title="Edit"><i class="bi bi-pencil-square"></i><span>Edit</span></a>
+                                            <form method="post" action="{{ path('app_content_delete', {'id': content.id}) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this content?');">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ content.id) }}">
+                                                <button class="btn btn-sm btn-danger d-flex align-items-center gap-1" title="Delete"><i class="bi bi-trash"></i><span>Delete</span></button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <i class="bi bi-file-text display-4 mb-3 d-block"></i>
+                                        <p class="mb-0">No contents found matching your criteria.</p>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                
+                {# Pagination #}
+                <div class="d-flex justify-content-center mt-3">
+                    {{ knp_pagination_render(pagination, null, {}, {'sortable': false}) }}
+                </div>
+                </div>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">
+                        {% if editing %}
+                            Edit content #{{ currentContent.id }}
+                        {% else %}
+                            Create new content
+                        {% endif %}
+                    </h2>
+
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        {{ form_widget(form) }}
+                        <button class="btn btn-success">{% if editing %}Update{% else %}Save{% endif %}</button>
+                    {{ form_end(form) }}
+
+                    <div class="mt-4" id="np-stt-box" style="padding: 12px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; background: rgba(255,255,255,0.03);">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div style="font-weight: 700;"> Mic to Text (Free)</div>
+                                <span id="np-stt-status" style="font-size: 0.85rem; color: #94a3b8;"></span>
+                            </div>
+
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button" class="btn btn-sm btn-success" id="np-stt-start">Start Listening</button>
+                                <button type="button" class="btn btn-sm btn-warning" id="np-stt-stop" disabled>Stop</button>
+                            </div>
+
+                            <div class="mt-2" style="font-size: 0.85rem; color: #94a3b8;">
+                                Click "Start Listening" and speak. Text appears live in the body field.
+                            </div>
+                    </div>
+                </div>
+
+                {% if editing %}
+                <div class="np-form-card np-animate-in-delayed mt-4">
+                    <h3 class="np-section-title" style="font-size: 1.2rem;">Comments ({{ currentContent.comments|length }})</h3>
+                    
+                    {# Add Comment Form #}
+                    <div class="mb-3" style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 15px;">
+                        <form method="post" action="{{ path('app_content_comment_add', {'id': currentContent.id}) }}">
+                            <div class="mb-2">
+                                <textarea name="content" class="form-control" rows="3" placeholder="Add a comment..." required></textarea>
+                            </div>
+                            <button class="btn btn-sm btn-success">➕ Add Comment</button>
+                        </form>
+                    </div>
+                    
+                    {% if currentContent.comments|length > 0 %}
+                    <div class="comments-list" style="max-height: 400px; overflow-y: auto;">
+                        {% for comment in currentContent.comments %}
+                        <div class="comment-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 5px;">
+                                {{ comment.author.username }} • {{ comment.createdAt|date('M d, Y H:i') }}
+                            </div>
+                            <div style="font-size: 0.9rem; margin-bottom: 8px;">
+                                {{ comment.content|slice(0, 100) }}{% if comment.content|length > 100 %}...{% endif %}
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editCommentModal{{ comment.id }}">
+                                    Edit
+                                </button>
+                                <form method="post" action="{{ path('app_comment_delete', {'id': comment.id}) }}" style="display:inline" 
+                                      onsubmit="return confirm('Delete this comment?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
+                                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        {# Edit Modal #}
+                        <div class="modal fade" id="editCommentModal{{ comment.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content bg-dark text-light">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Comment</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form method="post" action="{{ path('app_comment_edit', {'id': comment.id}) }}">
+                                        <div class="modal-body">
+                                            <textarea name="content" class="form-control" style="background: #1e293b; color: #f8fafc; border: 1px solid rgba(255,255,255,0.2);" rows="4">{{ comment.content }}</textarea>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-color: rgba(255,255,255,0.2); color: #94a3b8;">Cancel</button>
+                                            <button type="submit" class="btn btn-primary" style="background: #3b82f6; border: none;">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        (function() {
+            const btnStart = document.getElementById('np-stt-start');
+            const btnStop = document.getElementById('np-stt-stop');
+            const statusEl = document.getElementById('np-stt-status');
+
+            alert('Mic to Text script loading... Found buttons: ' + (btnStart ? 'YES' : 'NO') + ', ' + (btnStop ? 'YES' : 'NO'));
+
+            if (!btnStart || !btnStop) return;
+
+            // Check for Web Speech API support
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                statusEl.textContent = 'Speech not supported (use Chrome/Edge/Safari)';
+                btnStart.disabled = true;
+                btnStop.disabled = true;
+                alert('Speech recognition not supported in this browser');
+                return;
+            }
+
+            alert('Speech recognition supported!');
+
+            let recognition = null;
+            let isListening = false;
+            let lastError = null;
+            let startedAt = 0;
+            let gotAnyResult = false;
+
+            function isBrave() {
+                return typeof navigator !== 'undefined'
+                    && navigator.brave
+                    && typeof navigator.brave.isBrave === 'function';
+            }
+
+            function setStatus(text) {
+                if (statusEl) statusEl.textContent = text;
+            }
+
+            // Function to get CKEditor instance and insert text
+            function insertTextIntoCKEditor(text) {
+                alert('Trying to insert text: "' + text + '"');
+                
+                // Try multiple ways to find CKEditor instance
+                let editor = null;
+                
+                // Method 1: Classic CKEditor 4 global instance
+                if (window.CKEDITOR && window.CKEDITOR.instances) {
+                    const instances = Object.values(window.CKEDITOR.instances);
+                    editor = instances.find(inst => inst.name === 'content_body');
+                    alert('Method 1 - Found editor by content_body: ' + (editor ? 'YES' : 'NO'));
+                }
+                
+                // Method 2: Find by data-id or name attribute
+                if (!editor) {
+                    const textarea = document.querySelector('textarea[name="content[body]"]');
+                    alert('Method 2 - Found textarea: ' + (textarea ? 'YES' : 'NO') + ', ID: ' + (textarea ? textarea.id : 'N/A'));
+                    if (textarea && window.CKEDITOR) {
+                        editor = window.CKEDITOR.instances[textarea.id];
+                        alert('Method 2 - Found editor by textarea ID: ' + (editor ? 'YES' : 'NO'));
+                    }
+                }
+                
+                // Method 3: Find any CKEditor instance (fallback)
+                if (!editor && window.CKEDITOR && window.CKEDITOR.instances) {
+                    const instances = Object.values(window.CKEDITOR.instances);
+                    editor = instances[0]; // Use first available
+                    alert('Method 3 - Using first available editor: ' + (editor ? 'YES' : 'NO'));
+                }
+
+                if (editor) {
+                    editor.insertText(text);
+                    alert('Text inserted into CKEditor successfully!');
+                    console.log('Text inserted into CKEditor:', text);
+                } else {
+                    // Fallback: try to find any textarea and insert text
+                    const textarea = document.querySelector('textarea[name*="body"]');
+                    alert('Fallback - Found any textarea with "body": ' + (textarea ? 'YES' : 'NO'));
+                    if (textarea) {
+                        textarea.value += text;
+                        alert('Text inserted into textarea fallback!');
+                        console.log('Text inserted into textarea fallback:', text);
+                    } else {
+                        alert('Could not find any editor to insert text into!');
+                        console.warn('Could not find any editor to insert text into');
+                    }
+                }
+            }
+
+            btnStart.addEventListener('click', () => {
+                alert('Start button clicked!');
+                if (isListening) return;
+
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = (navigator.language || 'en-US');
+                recognition.maxAlternatives = 1;
+                lastError = null;
+                gotAnyResult = false;
+                startedAt = Date.now();
+
+                recognition.onstart = () => {
+                    alert('Speech recognition started!');
+                    isListening = true;
+                    btnStart.disabled = true;
+                    btnStop.disabled = false;
+                    setStatus('Listening... Speak now!');
+                };
+
+                recognition.onresult = (event) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        if (event.results[i].isFinal) {
+                            transcript += event.results[i][0].transcript;
+                        }
+                    }
+                    if (transcript) {
+                        alert('Speech result: "' + transcript + '"');
+                        // Insert text into CKEditor
+                        insertTextIntoCKEditor(transcript + ' ');
+                    }
+                    gotAnyResult = true;
+                };
+
+                recognition.onerror = (event) => {
+                    lastError = event && event.error ? event.error : 'unknown';
+                    alert('Speech recognition error: ' + lastError);
+                    console.warn('[SpeechRecognition] error event', event);
+                    setStatus('Speech error: ' + lastError);
+                    isListening = false;
+                    btnStart.disabled = false;
+                    btnStop.disabled = true;
+                };
+
+                recognition.onend = () => {
+                    alert('Speech recognition ended');
+                    isListening = false;
+                    btnStart.disabled = false;
+                    btnStop.disabled = true;
+                    const elapsedMs = Date.now() - startedAt;
+
+                    if (lastError === 'not-allowed' || lastError === 'service-not-allowed') {
+                        setStatus('Mic permission blocked. Allow microphone for this site, then retry.');
+                        return;
+                    }
+                    if (lastError === 'audio-capture') {
+                        setStatus('No microphone detected (or it is in use).');
+                        return;
+                    }
+                    if (lastError === 'network') {
+                        if (isBrave()) {
+                            setStatus('Speech error: network. In Brave: Shields OFF for this site, allow Microphone permission, then reload.');
+                        } else {
+                            setStatus('Speech error: network. Check internet and retry.');
+                        }
+                        return;
+                    }
+                    if (!gotAnyResult && elapsedMs < 1200) {
+                        setStatus('Stopped immediately. Use Chrome/Edge and make sure mic permission is allowed.');
+                        return;
+                    }
+
+                    setStatus('Stopped. Click Save to keep changes.');
+                };
+
+                try {
+                    recognition.start();
+                    alert('Recognition.start() called successfully');
+                } catch (e) {
+                    alert('Could not start speech recognition: ' + e.message);
+                    setStatus('Could not start speech recognition');
+                    console.error('Could not start speech recognition:', e);
+                }
+            });
+
+            btnStop.addEventListener('click', () => {
+                alert('Stop button clicked');
+                if (recognition && isListening) {
+                    recognition.stop();
+                }
+            });
+
+            // Debug: Check if CKEditor is available
+            setTimeout(() => {
+                alert('Checking CKEditor availability...');
+                console.log('CKEditor available:', !!window.CKEDITOR);
+                if (window.CKEDITOR && window.CKEDITOR.instances) {
+                    alert('CKEditor instances found: ' + Object.keys(window.CKEDITOR.instances).join(', '));
+                    console.log('CKEditor instances:', Object.keys(window.CKEDITOR.instances));
+                } else {
+                    alert('No CKEditor instances found');
+                }
+            }, 2000);
+        })();
+    </script>
+{% endblock %}
+

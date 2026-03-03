@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Notifications{% endblock %}
+
+{% block body %}
+<div class="np-profile-container" style="max-width: 800px; margin: 2rem auto;">
+    <div class="np-profile-card" style="background: #1a1a2e; padding: 2rem; border-radius: 12px;">
+        <h1 style="margin-bottom: 1.5rem; color: #ffc107;">🔔 My Notifications</h1>
+
+        {% if notifications|length > 0 %}
+            <div class="notifications-list">
+                {% for notification in notifications|sort((a, b) => b.createdAt <=> a.createdAt) %}
+                    <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; margin-bottom: 0.75rem; background: {{ notification.isRead ? '#252540' : '#2a2a4e' }}; border-radius: 8px; border-left: 4px solid {{ notification.isRead ? '#666' : '#ffc107' }};">
+                        <div style="font-size: 1.5rem;">
+                            {% if not notification.isRead %}🔔{% else %}📧{% endif %}
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 0.95rem; color: #e0e0e0;">
+                                {{ notification.message|raw }}
+                            </div>
+                            <div style="font-size: 0.75rem; color: #888; margin-top: 0.25rem;">
+                                {{ notification.createdAt|date('M d, Y H:i') }}
+                                {% if not notification.isRead %}
+                                    <span style="color: #ffc107; margin-left: 0.5rem;">(Unread)</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            {% if not notification.isRead %}
+                                <form action="{{ path('app_notification_read', {id: notification.id}) }}" method="POST" style="display: inline;">
+                                    <button type="submit" class="btn btn-sm btn-outline-success" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">Mark Read</button>
+                                </form>
+                            {% endif %}
+                            <form action="{{ path('app_notification_delete', {id: notification.id}) }}" method="POST" style="display: inline;" onsubmit="return confirm('Delete this notification?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ notification.id) }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">🗑️</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 3rem; color: #888;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+                <p>No notifications yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

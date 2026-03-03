@@ -1,0 +1,53 @@
+{% extends 'base_player.html.twig' %}
+
+{% block title %}Create Player Profile{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <div>
+                <span class="np-section-kicker">Player Portal</span>
+                <h1 class="np-section-title">Create Player Profile</h1>
+                <p class="np-section-subtitle">Set up your esports player profile to track stats and book coaching.</p>
+            </div>
+        </div>
+
+        <div class="np-form-card np-animate-in-delayed">
+            <div class="text-center mb-4">
+                <p class="text-muted">You don't have a player profile yet. Create one to:</p>
+                <div class="row justify-content-center mt-3">
+                    <div class="col-md-8">
+                        <div class="d-flex justify-content-around flex-wrap">
+                            <div class="text-center p-3">
+                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+                                <div style="font-size: 0.85rem;">Track Stats</div>
+                            </div>
+                            <div class="text-center p-3">
+                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎓</div>
+                                <div style="font-size: 0.85rem;">Book Coaching</div>
+                            </div>
+                            <div class="text-center p-3">
+                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🏆</div>
+                                <div style="font-size: 0.85rem;">Join Teams</div>
+                            </div>
+                            <div class="text-center p-3">
+                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">⭐</div>
+                                <div style="font-size: 0.85rem;">Become PRO</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info text-center">
+                <p class="mb-0">Contact an admin to create your player profile and link it to your account.</p>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{{ path('front_player_index') }}" class="btn btn-outline-primary">Browse Players</a>
+                <a href="{{ path('front_coaching_session_index') }}" class="btn btn-primary ms-2">Find Coaches</a>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

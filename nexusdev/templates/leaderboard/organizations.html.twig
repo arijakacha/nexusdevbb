@@ -1,0 +1,118 @@
+{% extends 'leaderboard/index.html.twig' %}
+
+{% block title %}Organization Rankings - {{ game.name }}{% endblock %}
+
+{% block leaderboard_content %}
+<div class="np-card" style="padding: 0; overflow: hidden;">
+    <div style="padding: 1.5rem; background: linear-gradient(135deg, rgba(99,102,241,0.1), transparent); border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700;">Organization Rankings - {{ game.name }}</h2>
+        <p style="margin: 0.5rem 0 0; color: var(--np-text-muted);">Based on average score of all players | Season: {{ season }}</p>
+    </div>
+
+    <table class="leaderboard-table">
+        <thead>
+            <tr>
+                <th style="width: 80px;">Rank</th>
+                <th>Organization</th>
+                <th style="width: 150px;">Tier</th>
+                <th style="width: 120px;">Avg Score</th>
+                <th style="width: 100px;">Win Rate</th>
+                <th style="width: 100px;">Players</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in rankings %}
+                <tr>
+                    <td>
+                        <span class="rank-badge {{ entry.rank <= 3 ? 'rank-' ~ entry.rank : 'rank-other' }}">
+                            {{ entry.rank }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="player-cell">
+                            {% if entry.organization.logo %}
+                                <img src="{{ asset('uploads/logos/' ~ entry.organization.logo) }}" alt="{{ entry.organization.name }}" class="player-avatar" style="border-radius: 8px;">
+                            {% else %}
+                                <div class="player-avatar" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; border-radius: 8px;">
+                                    {{ entry.organization.name|first|upper }}
+                                </div>
+                            {% endif %}
+                            <div class="player-info">
+                                <h4>{{ entry.organization.name }}</h4>
+                                <span>{{ entry.organization.country|default('Global') }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="tier-badge" style="background: {{ entry.tierColor }}20; color: {{ entry.tierColor }};">
+                            {{ entry.tier }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="elo-display">{{ entry.averageScore }}</span>
+                    </td>
+                    <td>
+                        <span style="font-weight: 600; color: {% if entry.averageWinRate >= 60 %}#10b981{% elseif entry.averageWinRate >= 50 %}#eab308{% else %}#ef4444{% endif %}">
+                            {{ entry.averageWinRate }}%
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-size: 1.1rem; font-weight: 600;">{{ entry.playerCount }}</span>
+                        <span style="font-size: 0.8rem; color: var(--np-text-muted);">players</span>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 3rem;">
+                        <p style="color: var(--np-text-muted);">No organizations found for this game.</p>
+                        <p style="font-size: 0.85rem; color: var(--np-text-muted);">Organizations will appear once teams and players are assigned.</p>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{# Organization Stats #}
+<div class="row" style="margin-top: 2rem;">
+    <div class="col-md-3">
+        <div class="np-card" style="text-align: center;">
+            <div class="np-card-label">Total Orgs</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #fff;">{{ rankings|length }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="np-card" style="text-align: center;">
+            <div class="np-card-label">Top Org Score</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #22d3ee;">
+                {{ rankings|first ? rankings|first.averageScore : 'N/A' }}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="np-card" style="text-align: center;">
+            <div class="np-card-label">Avg Org Score</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #a78bfa;">
+                {% set totalScore = 0 %}
+                {% for entry in rankings %}
+                    {% set totalScore = totalScore + entry.averageScore %}
+                {% endfor %}
+                {{ rankings|length > 0 ? (totalScore / rankings|length)|round : 'N/A' }}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="np-card" style="text-align: center;">
+            <div class="np-card-label">Total Players</div>
+            <div style="font-size: 2rem; font-weight: 700; color: #34d399;">
+                {% set totalPlayers = 0 %}
+                {% for entry in rankings %}
+                    {% set totalPlayers = totalPlayers + entry.playerCount %}
+                {% endfor %}
+                {{ totalPlayers }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

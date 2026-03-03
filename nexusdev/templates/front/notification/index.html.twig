@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block body %}
+<div class="np-section">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Activity</span>
+        <h1 class="np-section-title">Notifications</h1>
+        <p class="np-section-subtitle">Stay updated with your latest activities.</p>
+    </div>
+
+    <div class="np-card np-card--stats">
+        <div class="table-responsive">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Message</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for notification in notifications %}
+                    <tr class="{% if not notification.isRead %}table-active{% endif %}">
+                        <td>
+                            {% if notification.isRead %}
+                                <span class="np-status np-status--read">Read</span>
+                            {% else %}
+                                <span class="np-status np-status--unread">New</span>
+                            {% endif %}
+                        </td>
+                        <td class="font-weight-semibold">{{ notification.message }}</td>
+                        <td class="text-muted">{{ notification.createdAt ? notification.createdAt|date('M d, Y H:i') : '' }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="3">
+                            <div class="np-empty-state py-4">
+                                <div class="np-empty-state__icon">🔔</div>
+                                <div class="np-empty-state__title">No Notifications</div>
+                                <p>You're all caught up! No new notifications.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

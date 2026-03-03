@@ -1,0 +1,102 @@
+{% extends 'base_player.html.twig' %}
+
+{% block title %}Player Profile{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <div>
+                <span class="np-section-kicker">Player Portal</span>
+                <h1 class="np-section-title">Edit Profile</h1>
+                <p class="np-section-subtitle">Update your player information.</p>
+            </div>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title mb-4">Profile Information</h2>
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        <div class="mb-3">
+                            {{ form_label(form.nickname) }}
+                            {{ form_widget(form.nickname, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.nickname) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(form.realName) }}
+                            {{ form_widget(form.realName, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.realName) }}
+                            <div class="form-text text-muted">Your real name (optional).</div>
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(form.role) }}
+                            {{ form_widget(form.role, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.role) }}
+                            <div class="form-text text-muted">Your position/role in the game (e.g., Carry, Support, Tank).</div>
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(form.nationality) }}
+                            {{ form_widget(form.nationality, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.nationality) }}
+                            <div class="form-text text-muted">Your country or nationality.</div>
+                        </div>
+                        <button type="submit" class="btn btn-success">Save Changes</button>
+                        <a href="{{ path('app_player_back') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-card np-animate-in-delayed">
+                    <div class="text-center mb-3">
+                        {% if player.profilePicture %}
+                            <img src="{{ asset('uploads/' ~ player.profilePicture) }}" alt="{{ player.nickname }}" class="np-avatar np-avatar--xl np-avatar--bordered mx-auto">
+                        {% else %}
+                            <div class="np-avatar np-avatar--xl np-avatar--bordered mx-auto">{{ player.nickname|first|upper }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="text-center">
+                        <h5 class="mb-1">{{ player.nickname }}</h5>
+                        <p class="text-muted mb-2" style="font-size: 0.85rem;">{{ player.realName|default('No real name set') }}</p>
+                        <div class="d-flex justify-content-center gap-2 mb-3">
+                            <span class="tier-badge tier-badge--{{ player.getRank()|lower }}">{{ player.getRank() }}</span>
+                            {% if player.isPro %}
+                                <span class="np-badge np-badge--amber">PRO</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr class="my-3" style="border-color: rgba(255,255,255,0.1);">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Score</span>
+                        <span class="font-weight-bold">{{ player.score }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Game</span>
+                        <span>{{ player.game.name|default('Not set') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Role</span>
+                        <span>{{ player.role|default('Not set') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Nationality</span>
+                        <span>{{ player.nationality|default('Not set') }}</span>
+                    </div>
+                </div>
+
+                <div class="np-card np-animate-in-delayed mt-4">
+                    <h5 class="mb-3">Account Info</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Member Since</span>
+                        <span>{{ player.createdAt|date('M Y') }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Player ID</span>
+                        <span class="font-monospace" style="font-size: 0.8rem;">#{{ player.id }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

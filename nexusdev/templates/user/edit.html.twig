@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit {{ user.username }}{% endblock %}
+
+{% block body %}
+<div class="np-section">
+    <div class="np-section-header">
+        <span class="np-section-kicker">User Management</span>
+        <h1 class="np-section-title">Edit User</h1>
+        <p class="np-section-subtitle">Update user information.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 col-lg-6">
+            <div class="np-form-card">
+                {{ include('user/_form.html.twig', {'button_label': 'Update'}) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <a href="{{ path('app_user_index') }}" class="btn btn-secondary">← Back to list</a>
+        {{ include('user/_delete_form.html.twig') }}
+    </div>
+</div>
+{% endblock %}
+

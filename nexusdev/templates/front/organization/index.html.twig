@@ -1,0 +1,79 @@
+{% extends is_granted('ROLE_ORGANIZATION') ? 'base_organization.html.twig' : 'base.html.twig' %}
+
+{% block title %}Organizations directory{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Organizations</span>
+            <h1 class="np-section-title">Organizations directory</h1>
+            <p class="np-section-subtitle">Browse all esport organizations registered on the platform.</p>
+        </div>
+
+        {# Search and Filter Form #}
+        <div class="np-card mb-4">
+            <div class="np-card__body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" name="search" class="form-control" placeholder="Search organization name..." value="{{ app.request.query.get('search') }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="type" class="form-select">
+                            <option value="">All Types</option>
+                            {% for orgType in orgTypes %}
+                                <option value="{{ orgType }}" {% if app.request.query.get('type') == orgType %}selected{% endif %}>{{ orgType }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="verified" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="1" {% if app.request.query.get('verified') == '1' %}selected{% endif %}>Verified</option>
+                            <option value="0" {% if app.request.query.get('verified') == '0' %}selected{% endif %}>Pending</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Filter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if pagination|length == 0 %}
+            <div class="np-empty-state">
+                <div class="np-empty-state__icon">🏢</div>
+                <div class="np-empty-state__title">No Organizations Found</div>
+                <p>No organizations match your search criteria.</p>
+            </div>
+        {% else %}
+            <div class="row">
+                {% for organization in pagination %}
+                    <div class="col-md-4 mb-4">
+                        <div class="np-card">
+                            <div class="d-flex align-items-center mb-2">
+                                {% if organization.logo %}
+                                    <img src="{{ asset('uploads/logos/' ~ organization.logo) }}" alt="{{ organization.name }}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover; margin-right: 0.75rem;">
+                                {% endif %}
+                                <div>
+                                    <h3 style="margin: 0;">{{ organization.name }}</h3>
+                                    <small class="np-text-muted">
+                                        {{ organization.isValidated ? '✓ Verified' : 'Pending' }}
+                                    </small>
+                                </div>
+                            </div>
+                            {% if organization.description %}
+                                <p class="np-card-meta">{{ organization.description|slice(0, 100) }}{% if organization.description|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            {# Pagination #}
+            <div class="d-flex justify-content-center mt-4">
+                {{ knp_pagination_render(pagination, null, {}, {'sortable': false}) }}
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}
+

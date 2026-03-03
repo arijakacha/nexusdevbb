@@ -1,0 +1,98 @@
+{% extends 'back/base.html.twig' %}
+
+{% block title %}Stream management{% endblock %}
+
+{% block admin_content %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">Back office</span>
+            <h1 class="np-section-title">Streams</h1>
+            <p class="np-section-subtitle">Manage player live streams.</p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                {# Search Form #}
+                <div class="np-card mb-4">
+                    <div class="np-card__body">
+                        <form method="get" class="row g-3">
+                            <div class="col-md-8">
+                                <input type="text" name="search" class="form-control" placeholder="Search stream title or player..." value="{{ app.request.query.get('search') }}">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100">Search</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <h2>Streams list</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Player</th>
+                            <th>Title</th>
+                            <th>URL</th>
+                            <th>Live</th>
+                            <th>Created at</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for stream in pagination %}
+                        <tr>
+                            <td>{{ stream.id }}</td>
+                            <td>{{ stream.player.nickname }}</td>
+                            <td>{{ stream.title }}</td>
+                            <td>{{ stream.url }}</td>
+                            <td>
+                                {% if stream.isLive %}
+                                    <span class="badge bg-success">live</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">offline</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ stream.createdAt|date('Y-m-d H:i') }}</td>
+                            <td style="white-space: nowrap;">
+                                <a href="{{ path('app_stream_back', {'id': stream.id}) }}" class="btn btn-sm btn-primary">edit</a>
+                                <form method="post" action="{{ path('app_stream_delete', {'id': stream.id}) }}" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this stream?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ stream.id) }}">
+                                    <button class="btn btn-sm btn-danger">delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7">No streams match your search.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                
+                {# Pagination #}
+                <div class="d-flex justify-content-center mt-3">
+                    {{ knp_pagination_render(pagination, null, {}, {'sortable': false}) }}
+                </div>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">
+                        {% if editing %}
+                            Edit stream #{{ currentStream.id }}
+                        {% else %}
+                            Create new stream
+                        {% endif %}
+                    </h2>
+
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        {{ form_widget(form) }}
+                        <button class="btn btn-success">{% if editing %}Update{% else %}Save{% endif %}</button>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

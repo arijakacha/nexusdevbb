@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Player classification{% endblock %}
+
+{% block body %}
+    <section class="np-section np-animate-in">
+        <div class="np-section-header">
+            <span class="np-section-kicker">PRO classification</span>
+            <h1 class="np-section-title">Evaluate {{ player.nickname }}</h1>
+            <p class="np-section-subtitle">
+                Enter the points earned in the mini game to classify the player.
+                Above 100 points the player becomes a PRO and can be recruited by organizations.
+            </p>
+        </div>
+
+        <div class="np-back-layout">
+            <div class="np-back-layout-main">
+                <div class="np-card">
+                    <div class="np-card-title">Current status</div>
+                    <div class="np-card-meta">
+                        <span class="np-text-strong">Score:</span> {{ player.score }}
+                    </div>
+                    <div class="np-card-meta">
+                        <span class="np-text-strong">Classification:</span>
+                        {% if player.isPro %}
+                            <span class="badge bg-success">PRO</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Not pro</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="np-back-layout-side">
+                <div class="np-form-card np-animate-in-delayed">
+                    <h2 class="np-section-title">Update score</h2>
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        {{ form_widget(form) }}
+                        <button class="btn btn-primary w-100" type="submit">Save score</button>
+                    {{ form_end(form) }}
+
+                    {% if player.isPro and app.session.get('my_player_id') == player.id %}
+                        <p class="np-form-footer">
+                            This player is PRO. You can
+                            <a href="{{ path('front_stream_new', {'id': player.id}) }}">create a live stream</a>
+                            for them.
+                        </p>
+                    {% else %}
+                        <p class="np-form-footer">
+                            Need help to reach PRO level?
+                            <a href="{{ path('front_coaching_new', {'id': player.id}) }}">Request a coaching session</a>,
+                            <a href="{{ path('front_coach_index') }}">browse coaches</a>
+                            or
+                            <a href="{{ path('front_content_index') }}">check guides</a>.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

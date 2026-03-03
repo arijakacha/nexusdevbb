@@ -1,0 +1,251 @@
+{% extends 'base_player.html.twig' %}
+
+{% block title %}Player Dashboard{% endblock %}
+
+{% block body %}
+    {# Player Header Banner #}
+    <div class="player-banner" style="background: linear-gradient(135deg, #0f172a 0%, #312e81 50%, #0f172a 100%); padding: 3rem 0; margin-bottom: 2rem; border-bottom: 1px solid rgba(139,92,246,0.3);">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="player-avatar-large" style="position: relative;">
+                            {% if player.profilePicture %}
+                                <img src="{{ asset('uploads/' ~ player.profilePicture) }}" alt="{{ player.nickname }}" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover; border: 3px solid rgba(139,92,246,0.5); box-shadow: 0 0 40px rgba(139,92,246,0.3);">
+                            {% else %}
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); font-size: 3rem; font-weight: 700; color: white; border: 3px solid rgba(139,92,246,0.5); box-shadow: 0 0 40px rgba(139,92,246,0.3);">
+                                    {{ player.nickname|first|upper }}
+                                </div>
+                            {% endif %}
+                            {% if player.isPro %}
+                                <span class="badge bg-warning text-dark" style="position: absolute; bottom: 5px; right: 5px; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">PRO</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: #a5b4fc; margin-bottom: 0.5rem;">
+                                {% if player.team %}
+                                    {{ player.team.name }} • {{ player.game.name }}
+                                {% else %}
+                                    Free Agent • {{ player.game.name|default('No Game') }}
+                                {% endif %}
+                            </div>
+                            <h1 style="font-size: 2.5rem; font-weight: 700; margin: 0; background: linear-gradient(90deg, #fff, #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ player.nickname }}</h1>
+                            <div class="d-flex gap-3 mt-2" style="font-size: 0.9rem; color: #a5b4fc;">
+                                <span class="badge" style="background: rgba(139,92,246,0.3); color: #ddd6fe; font-size: 0.8rem;">{{ player.getRank() }}</span>
+                                <span>{{ player.role|default('No role') }}</span>
+                                {% if player.nationality %}
+                                    <span>• {{ player.nationality }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <div class="score-display" style="display: inline-block; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 1rem 1.5rem; border: 1px solid rgba(139,92,246,0.3);">
+                        <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #a5b4fc;">Career Score</div>
+                        <div style="font-size: 2rem; font-weight: 700; color: #fff;">{{ player.score }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="np-section">
+        {# Career Stats Cards with Icons #}
+        <div class="row mb-4">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card" style="background: linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(99,102,241,0.05) 100%); border: 1px solid rgba(99,102,241,0.3); border-radius: 16px; padding: 1.5rem; text-align: center;">
+                    <div style="width: 48px; height: 48px; background: rgba(99,102,241,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                        <svg width="24" height="24" fill="#818cf8" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
+                    </div>
+                    <div style="font-size: 2rem; font-weight: 700; color: #fff;">{{ careerStats.totalMatches }}</div>
+                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #818cf8;">Matches</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card" style="background: linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.05) 100%); border: 1px solid rgba(16,185,129,0.3); border-radius: 16px; padding: 1.5rem; text-align: center;">
+                    <div style="width: 48px; height: 48px; background: rgba(16,185,129,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                        <svg width="24" height="24" fill="#34d399" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/></svg>
+                    </div>
+                    <div style="font-size: 2rem; font-weight: 700; color: #10b981;">{{ careerStats.winRate }}%</div>
+                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #34d399;">Win Rate</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card" style="background: linear-gradient(135deg, rgba(59,130,246,0.2) 0%, rgba(59,130,246,0.05) 100%); border: 1px solid rgba(59,130,246,0.3); border-radius: 16px; padding: 1.5rem; text-align: center;">
+                    <div style="width: 48px; height: 48px; background: rgba(59,130,246,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                        <svg width="24" height="24" fill="#60a5fa" viewBox="0 0 16 16"><path d="M0 0h1v15h15v1H0V0Zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.3 3.3a.5.5 0 0 1-.708 0L7 6.707l-3.3 3.3a.5.5 0 0 1-.708 0l-1.1-1.1a.5.5 0 0 1 0-.708l3.3-3.3a.5.5 0 0 1 .708 0L9 5.293l3.3-3.3a.5.5 0 0 1 .7 0V3.5Z"/></svg>
+                    </div>
+                    <div style="font-size: 2rem; font-weight: 700; color: #3b82f6;">{{ careerStats.kdRatio }}</div>
+                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #60a5fa;">K/D Ratio</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card" style="background: linear-gradient(135deg, rgba(139,92,246,0.2) 0%, rgba(139,92,246,0.05) 100%); border: 1px solid rgba(139,92,246,0.3); border-radius: 16px; padding: 1.5rem; text-align: center;">
+                    <div style="width: 48px; height: 48px; background: rgba(139,92,246,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                        <svg width="24" height="24" fill="#a78bfa" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z"/></svg>
+                    </div>
+                    <div style="font-size: 2rem; font-weight: 700; color: #8b5cf6;">{{ totalSessions }}</div>
+                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #a78bfa;">Coaching</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            {# Upcoming Coaching #}
+            <div class="col-lg-8 mb-4">
+                <div class="np-card" style="background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden;">
+                    <div class="p-4 border-bottom" style="border-color: rgba(255,255,255,0.1) !important; background: linear-gradient(90deg, rgba(139,92,246,0.1) 0%, transparent 100%);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h3 class="mb-1" style="font-weight: 600;">Upcoming Coaching</h3>
+                                <p class="mb-0" style="color: #64748b; font-size: 0.9rem;">Your scheduled sessions</p>
+                            </div>
+                            <a href="{{ path('app_player_sessions') }}" class="btn btn-outline-primary btn-sm">View All</a>
+                        </div>
+                    </div>
+
+                    <div class="p-4">
+                        {% if upcomingSessions is empty %}
+                            <div class="text-center py-5">
+                                <div style="width: 64px; height: 64px; background: rgba(139,92,246,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                                    <svg width="32" height="32" fill="#8b5cf6" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
+                                </div>
+                                <h5 style="color: #94a3b8;">No Upcoming Sessions</h5>
+                                <p class="mb-3" style="color: #64748b;">Book a coaching session to improve your skills.</p>
+                                <a href="{{ path('front_coaching_session_index') }}" class="btn btn-primary">Book a Coach</a>
+                            </div>
+                        {% else %}
+                            <div class="row g-3">
+                                {% for session in upcomingSessions %}
+                                    <div class="col-md-6">
+                                        <div class="session-card" style="background: rgba(30,41,59,0.8); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1rem; border-left: 3px solid {% if session.status == 'CONFIRMED' %}#10b981{% else %}#f59e0b{% endif %};">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <span class="badge {% if session.status == 'CONFIRMED' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                                    {{ session.status }}
+                                                </span>
+                                                <span style="font-size: 0.8rem; color: #94a3b8;">
+                                                    {{ session.scheduledAt|date('M j, g:i A') }}
+                                                </span>
+                                            </div>
+                                            <div style="font-weight: 600; margin-bottom: 0.25rem;">
+                                                Coach {{ session.coach.user.username|default('Unknown') }}
+                                            </div>
+                                            {% if session.notes %}
+                                                <div style="font-size: 0.8rem; color: #64748b;">
+                                                    {{ session.notes }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Recent Sessions #}
+                <div class="np-card mt-4" style="background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden;">
+                    <div class="p-4 border-bottom" style="border-color: rgba(255,255,255,0.1) !important;">
+                        <h3 class="mb-0" style="font-weight: 600;">Recent Sessions</h3>
+                    </div>
+                    <div class="p-4">
+                        {% if pastSessions is empty %}
+                            <p class="text-muted mb-0">No past coaching sessions yet.</p>
+                        {% else %}
+                            <div class="table-responsive">
+                                <table class="table table-sm" style="color: #94a3b8;">
+                                    <thead>
+                                        <tr style="font-size: 0.8rem; text-transform: uppercase;">
+                                            <th>Date</th>
+                                            <th>Coach</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for session in pastSessions %}
+                                            <tr>
+                                                <td style="font-size: 0.9rem;">{{ session.scheduledAt|date('M j, Y') }}</td>
+                                                <td style="font-size: 0.9rem;">{{ session.coach.user.username|default('Unknown') }}</td>
+                                                <td>
+                                                    <span class="badge {% if session.status == 'COMPLETED' %}bg-success{% elseif session.status == 'CANCELLED' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                        {{ session.status }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# Sidebar #}
+            <div class="col-lg-4">
+                {# Quick Actions Card #}
+                <div class="np-card mb-4" style="background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden;">
+                    <div class="p-4 border-bottom" style="border-color: rgba(255,255,255,0.1) !important;">
+                        <h5 class="mb-0" style="font-weight: 600;">Quick Actions</h5>
+                    </div>
+                    <div class="p-4">
+                        <a href="{{ path('app_player_profile') }}" class="btn btn-outline-primary w-100 mb-2 d-flex align-items-center justify-content-center gap-2">
+                            <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/></svg>
+                            Edit Profile
+                        </a>
+                        <a href="{{ path('app_player_stats') }}" class="btn btn-outline-success w-100 mb-2 d-flex align-items-center justify-content-center gap-2">
+                            <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M0 0h1v15h15v1H0V0Zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.3 3.3a.5.5 0 0 1-.708 0L7 6.707l-3.3 3.3a.5.5 0 0 1-.708 0l-1.1-1.1a.5.5 0 0 1 0-.708l3.3-3.3a.5.5 0 0 1 .708 0L9 5.293l3.3-3.3a.5.5 0 0 1 .7 0V3.5Z"/></svg>
+                            View Stats
+                        </a>
+                        <a href="{{ path('front_coaching_session_index') }}" class="btn btn-outline-warning w-100 d-flex align-items-center justify-content-center gap-2">
+                            <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm1-11a1 1 0 1 0-2 0 1 1 0 0 0 2 0zm-1 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm1 3a1 1 0 1 0-2 0 1 1 0 0 0 2 0z"/></svg>
+                            Find Coach
+                        </a>
+                    </div>
+                </div>
+
+                {# Team Info #}
+                {% if player.team %}
+                    <div class="np-card" style="background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden;">
+                        <div class="p-4 border-bottom" style="border-color: rgba(255,255,255,0.1) !important;">
+                            <h5 class="mb-0" style="font-weight: 600;">Your Team</h5>
+                        </div>
+                        <div class="p-4">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                {% if player.team.logo %}
+                                    <img src="{{ asset('uploads/logos/' ~ player.team.logo) }}" alt="{{ player.team.name }}" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover;">
+                                {% else %}
+                                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 600;">
+                                        {{ player.team.name|first|upper }}
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <div style="font-weight: 600;">{{ player.team.name }}</div>
+                                    <div style="font-size: 0.8rem; color: #64748b;">{{ player.team.game.name|default('No game') }}</div>
+                                </div>
+                            </div>
+                            <a href="{{ path('app_organization_team_detail', {'id': player.team.id}) }}" class="btn btn-outline-light btn-sm w-100">View Team</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="np-card" style="background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden;">
+                        <div class="p-4 border-bottom" style="border-color: rgba(255,255,255,0.1) !important;">
+                            <h5 class="mb-0" style="font-weight: 600;">Free Agent</h5>
+                        </div>
+                        <div class="p-4 text-center">
+                            <p style="color: #64748b; font-size: 0.9rem;">You're not currently on a team. Organizations may recruit you!</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <style>
+        .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+        .session-card:hover { border-color: rgba(139,92,246,0.3) !important; transform: translateY(-2px); transition: all 0.2s; }
+    </style>
+{% endblock %}
+

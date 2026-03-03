@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Coaching Sessions{% endblock %}
+
+{% block body %}
+<div class="np-section">
+    <div class="np-section-header">
+        <span class="np-section-kicker">Coaching</span>
+        <h1 class="np-section-title">My Sessions</h1>
+        <p class="np-section-subtitle">View and manage your coaching sessions.</p>
+    </div>
+
+    <div class="mb-3">
+        <a href="{{ path('front_coach_index') }}" class="btn btn-secondary">← Find a Coach</a>
+    </div>
+
+    {% if sessions|length > 0 %}
+        <div class="row">
+            {% for session in sessions %}
+            <div class="col-md-6 mb-3">
+                <div class="np-card hover-lift">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            {% if session.coach.user.profilePicture %}
+                                <img src="{{ asset('uploads/' ~ session.coach.user.profilePicture) }}" alt="{{ session.coach.user.username }}" class="np-avatar np-avatar--md">
+                            {% else %}
+                                <div class="np-avatar np-avatar--md">{{ session.coach.user.username|first|upper }}</div>
+                            {% endif %}
+                            <div>
+                                <h4 class="m-0" style="font-size: 1.1rem;">{{ session.coach.user.username }}</h4>
+                                <div class="text-muted" style="font-size: 0.85rem;">{{ session.scheduledAt|date('M d, Y H:i') }}</div>
+                            </div>
+                        </div>
+                        <span class="np-status np-status--{{ session.status|lower }}">{{ session.status }}</span>
+                    </div>
+                    
+                    {% if session.notes %}
+                    <div class="p-3 mb-3" style="background: rgba(255,255,255,0.03); border-radius: 8px;">
+                        <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--np-text-muted); margin-bottom: 0.5rem;">Your Notes</div>
+                        <p class="m-0" style="font-size: 0.9rem;">{{ session.notes }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center pt-3" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                        <span class="text-muted" style="font-size: 0.85rem;">Requested {{ session.createdAt|date('M d, Y') }}</span>
+                        {% if session.status == 'PENDING' %}
+                            <span class="text-warning" style="font-size: 0.85rem;">Awaiting confirmation</span>
+                        {% elseif session.status == 'CONFIRMED' %}
+                            <span class="text-success" style="font-size: 0.85rem;">✓ Confirmed</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="np-empty-state">
+            <div class="np-empty-state__icon">📅</div>
+            <div class="np-empty-state__title">No Sessions Yet</div>
+            <p class="mb-3">You haven't booked any coaching sessions yet.</p>
+            <a href="{{ path('front_coach_index') }}" class="btn btn-primary">Find a Coach</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

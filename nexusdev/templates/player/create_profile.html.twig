@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Player Profile - NexusPlay{% endblock %}
+
+{% block body %}
+<section class="np-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="np-card" style="padding: 2rem;">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <h1 class="np-section-title">⚡ Complete Your Profile</h1>
+                        <p class="np-text-muted">Game: <strong>{{ game.name }}</strong></p>
+                    </div>
+                    
+                    {{ form_start(form, {'attr': {'class': 'np-form'}}) }}
+                        
+                        {# Riot Games Account Section - EUW Only #}
+                        <div class="np-card" style="padding: 1.5rem; margin-bottom: 2rem; background: var(--np-surface); border: 2px solid var(--np-primary);">
+                            <h4 style="margin-bottom: 1rem; color: var(--np-primary);">🎮 Riot Games Account (EUW Only)</h4>
+                            <p class="np-text-muted" style="margin-bottom: 1rem;">Link your League of Legends EUW account to sync stats automatically.</p>
+                            
+                            <div class="row">
+                                <div class="col-md-5 mb-3">
+                                    <label for="riot_game_name" class="form-label">Username</label>
+                                    <input type="text" id="riot_game_name" name="riot_game_name" class="form-control" 
+                                           value="" 
+                                           placeholder="BWS 月亮">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="riot_tag_line" class="form-label">#Tag</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">#</span>
+                                        <input type="text" id="riot_tag_line" name="riot_tag_line" class="form-control" 
+                                               value="" 
+                                               placeholder="BWS">
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Region</label>
+                                    <input type="text" class="form-control" value="EU West (EUW)" disabled readonly style="background: var(--np-surface); opacity: 0.7;">
+                                    <input type="hidden" name="riot_region" value="euw1">
+                                </div>
+                            </div>
+                            <small class="form-text text-muted">Enter your Riot ID username and tag (e.g., Username: <strong>BWS 月亮</strong>, Tag: <strong>BWS</strong>)</small>
+                        </div>
+                        
+                        <h4 style="margin-bottom: 1rem;">Profile Information</h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form_label(form.nickname) }}
+                                {{ form_widget(form.nickname, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.nickname) }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form_label(form.realName) }}
+                                {{ form_widget(form.realName, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.realName) }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form_label(form.role) }}
+                                {{ form_widget(form.role, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.role) }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form_label(form.nationality) }}
+                                {{ form_widget(form.nationality, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.nationality) }}
+                            </div>
+                        </div>
+                        <div style="margin-top: 2rem; text-align: center;">
+                            <button type="submit" class="btn btn-primary btn-lg">🚀 Launch Profile</button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
